@@ -42,7 +42,7 @@ export default function Navbar() {
               <Hotel className="w-5 h-5 text-white" />
             </div>
             <span className="text-lg font-bold text-foreground">
-              Hotel<span className="gradient-text">indo</span>
+              Lali<span className="gradient-text">oma</span>
             </span>
           </Link>
 
