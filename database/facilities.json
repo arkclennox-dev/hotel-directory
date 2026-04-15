@@ -1,0 +1,114 @@
+[
+  {
+    "id": "fac-001",
+    "name": "Kolam Renang",
+    "slug": "kolam-renang",
+    "icon": "Waves",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-002",
+    "name": "Sarapan Gratis",
+    "slug": "sarapan-gratis",
+    "icon": "Coffee",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-003",
+    "name": "WiFi Gratis",
+    "slug": "wifi-gratis",
+    "icon": "Wifi",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-004",
+    "name": "Parkir Gratis",
+    "slug": "parkir-gratis",
+    "icon": "Car",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-005",
+    "name": "Spa & Wellness",
+    "slug": "spa-wellness",
+    "icon": "Flower2",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-006",
+    "name": "Restoran",
+    "slug": "restoran",
+    "icon": "UtensilsCrossed",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-007",
+    "name": "Gym & Fitness",
+    "slug": "gym-fitness",
+    "icon": "Dumbbell",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-008",
+    "name": "AC",
+    "slug": "ac",
+    "icon": "Wind",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-009",
+    "name": "Resepsionis 24 Jam",
+    "slug": "resepsionis-24-jam",
+    "icon": "Clock",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-010",
+    "name": "Laundry",
+    "slug": "laundry",
+    "icon": "Shirt",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-011",
+    "name": "Private Pool",
+    "slug": "private-pool",
+    "icon": "Droplets",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-012",
+    "name": "Bathtub",
+    "slug": "bathtub",
+    "icon": "Bath",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-013",
+    "name": "Pemandangan Bagus",
+    "slug": "pemandangan-bagus",
+    "icon": "Mountain",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-014",
+    "name": "Kids Club",
+    "slug": "kids-club",
+    "icon": "Baby",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-015",
+    "name": "Meeting Room",
+    "slug": "meeting-room",
+    "icon": "Presentation",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "fac-016",
+    "name": "Shuttle Bandara",
+    "slug": "shuttle-bandara",
+    "icon": "Bus",
+    "created_at": "2024-01-01T00:00:00Z"
+  }
+]
