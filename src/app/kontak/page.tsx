@@ -3,7 +3,7 @@ import { Mail, MapPin, Clock } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Hubungi Kami",
-  description: "Hubungi tim Hotelindo untuk pertanyaan, kerja sama, atau feedback.",
+  description: "Hubungi tim Lalioma untuk pertanyaan, kerja sama, atau feedback.",
 };
 
 export default function KontakPage() {
@@ -22,7 +22,7 @@ export default function KontakPage() {
             <div className="glass-card p-5 text-center">
               <Mail className="w-6 h-6 text-primary mx-auto mb-3" />
               <h3 className="text-sm font-semibold text-foreground mb-1">Email</h3>
-              <p className="text-sm text-muted-foreground">hello@hotelindo.id</p>
+              <p className="text-sm text-muted-foreground">hello@lalioma.id</p>
             </div>
             <div className="glass-card p-5 text-center">
               <MapPin className="w-6 h-6 text-primary mx-auto mb-3" />

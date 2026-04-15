@@ -7,8 +7,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Hotelindo — Directory Hotel Terbaik di Indonesia",
-    template: "%s | Hotelindo",
+    default: "Lalioma — Directory Hotel Terbaik di Indonesia",
+    template: "%s | Lalioma",
   },
   description:
     "Temukan dan bandingkan hotel terbaik di seluruh Indonesia. Jelajahi hotel berdasarkan kota, kategori, dan landmark. Booking via Traveloka, tiket.com, dan Agoda.",
@@ -24,13 +24,13 @@ export const metadata: Metadata = {
     "hotel bisnis",
     "staycation indonesia",
   ],
-  authors: [{ name: "Hotelindo" }],
-  creator: "Hotelindo",
+  authors: [{ name: "Lalioma" }],
+  creator: "Lalioma",
   openGraph: {
     type: "website",
     locale: "id_ID",
-    siteName: "Hotelindo",
-    title: "Hotelindo — Directory Hotel Terbaik di Indonesia",
+    siteName: "Lalioma",
+    title: "Lalioma — Directory Hotel Terbaik di Indonesia",
     description:
       "Temukan dan bandingkan hotel terbaik di seluruh Indonesia. Booking via Traveloka, tiket.com, dan Agoda.",
   },

@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Kebijakan Privasi", description: "Kebijakan privasi Hotelindo." };
+export const metadata: Metadata = { title: "Kebijakan Privasi", description: "Kebijakan privasi Lalioma." };
 
 export default function PrivasiPage() {
   return (
@@ -14,7 +14,7 @@ export default function PrivasiPage() {
             <div><h2 className="text-base font-semibold text-foreground mb-2">2. Penggunaan Informasi</h2><p>Informasi yang kami kumpulkan digunakan untuk meningkatkan layanan website, menyediakan konten yang relevan, dan menganalisis penggunaan website melalui Google Analytics.</p></div>
             <div><h2 className="text-base font-semibold text-foreground mb-2">3. Link Affiliate</h2><p>Website ini menggunakan link affiliate ke platform booking hotel pihak ketiga. Saat Anda mengklik link affiliate, platform partner mungkin mengumpulkan data sesuai kebijakan privasi mereka.</p></div>
             <div><h2 className="text-base font-semibold text-foreground mb-2">4. Cookies</h2><p>Kami menggunakan cookies untuk analitik dan meningkatkan pengalaman browsing. Anda dapat mengatur preferensi cookies melalui pengaturan browser Anda.</p></div>
-            <div><h2 className="text-base font-semibold text-foreground mb-2">5. Kontak</h2><p>Untuk pertanyaan terkait privasi, hubungi kami di hello@hotelindo.id.</p></div>
+            <div><h2 className="text-base font-semibold text-foreground mb-2">5. Kontak</h2><p>Untuk pertanyaan terkait privasi, hubungi kami di hello@lalioma.id.</p></div>
           </div>
         </div>
       </div>

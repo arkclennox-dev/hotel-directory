@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/admin/"],
       },
     ],
-    sitemap: "https://hotelindo.id/sitemap.xml",
+    sitemap: "https://lalioma.id/sitemap.xml",
   };
 }

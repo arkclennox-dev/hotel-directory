@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 import { getHotels, getCities, getCategories, getBlogPosts } from "@/lib/queries";
 
-const BASE_URL = "https://hotelindo.id";
+const BASE_URL = "https://lalioma.id";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const hotels = getHotels();

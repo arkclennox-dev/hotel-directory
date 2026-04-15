@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Tentang Kami",
-  description: "Tentang Hotelindo — directory hotel Indonesia terlengkap untuk membantu Anda menemukan hotel terbaik.",
+  description: "Tentang Lalioma — directory hotel Indonesia terlengkap untuk membantu Anda menemukan hotel terbaik.",
 };
 
 export default function TentangPage() {
@@ -11,14 +11,14 @@ export default function TentangPage() {
       <div className="section-container">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            Tentang <span className="gradient-text">Hotelindo</span>
+            Tentang <span className="gradient-text">Lalioma</span>
           </h1>
 
           <div className="prose prose-invert prose-dark max-w-none space-y-6">
             <div className="glass-card p-6">
               <h2 className="text-lg font-semibold text-foreground mb-3">Misi Kami</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Hotelindo hadir untuk membantu traveler Indonesia menemukan hotel yang tepat dengan mudah dan cepat. Kami menyediakan directory hotel terlengkap yang memudahkan pencarian berdasarkan kota, kategori, landmark, dan kebutuhan spesifik Anda.
+                Lalioma hadir untuk membantu traveler Indonesia menemukan hotel yang tepat dengan mudah dan cepat. Kami menyediakan directory hotel terlengkap yang memudahkan pencarian berdasarkan kota, kategori, landmark, dan kebutuhan spesifik Anda.
               </p>
             </div>
 

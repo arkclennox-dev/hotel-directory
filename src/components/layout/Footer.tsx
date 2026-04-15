@@ -131,7 +131,7 @@ export default function Footer() {
       <div className="border-t border-surface-border">
         <div className="section-container py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Hotelindo. Hak cipta dilindungi.
+            © {new Date().getFullYear()} Lalioma. Hak cipta dilindungi.
           </p>
           <div className="flex items-center gap-4">
             <Link href="/kebijakan-privasi" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
