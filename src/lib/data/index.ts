@@ -5,9 +5,11 @@ import landmarksData from "../../../database/landmarks.json";
 import hotelsData from "../../../database/hotels.json";
 import blogPostsData from "../../../database/blog-posts.json";
 
-export const cities = citiesData as any;
-export const categories = categoriesData as any;
-export const facilities = facilitiesData as any;
-export const landmarks = landmarksData as any;
-export const hotels = hotelsData as any;
-export const blogPosts = blogPostsData as any;
+import { City, Category, Facility, Landmark, Hotel, BlogPost } from "@/lib/types";
+
+export const cities = citiesData as City[];
+export const categories = categoriesData as Category[];
+export const facilities = facilitiesData as Facility[];
+export const landmarks = landmarksData as Landmark[];
+export const hotels = hotelsData as Hotel[];
+export const blogPosts = blogPostsData as BlogPost[];
