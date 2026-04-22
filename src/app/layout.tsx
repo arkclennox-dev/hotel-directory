@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import "./globals.css";
 
@@ -49,9 +47,7 @@ export default function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          <Navbar />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
+          {children}
         </ThemeProvider>
       </body>
     </html>
