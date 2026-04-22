@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function AffiliateForm() {
+function AffiliateFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const hotelId = searchParams.get("hotel_id");
@@ -54,5 +54,13 @@ export default function AffiliateForm() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function AffiliateForm() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center">Loading form...</div>}>
+      <AffiliateFormContent />
+    </Suspense>
   );
 }
