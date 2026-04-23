@@ -1,45 +1,69 @@
-import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-import { checkApiKey } from "@/lib/api-auth";
-import { BlogPost } from "@/lib/types";
+import { NextRequest, NextResponse } from "next/server";
+import { getSupabase } from "@/lib/supabase";
 
-export async function POST(request: Request) {
-  const authResponse = checkApiKey(request);
-  if (authResponse) return authResponse;
-
+export async function POST(request: NextRequest) {
   try {
-    const payload = await request.json();
-    
-    // Read current DB
-    const dbPath = path.join(process.cwd(), "database", "blog-posts.json");
-    const rawData = fs.readFileSync(dbPath, "utf-8");
-    const posts: BlogPost[] = JSON.parse(rawData);
+    const supabase = getSupabase();
+    const body = await request.json();
 
-    // AI Payload shape mapping
-    const newPost: BlogPost = {
-      id: "blog-" + Date.now().toString(),
-      title: payload.title,
-      slug: payload.title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-      excerpt: payload.excerpt || payload.content_html.substring(0, 150) + "...",
-      content_html: payload.content_html,
-      featured_image_url: payload.featured_image_url || "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&h=500&fit=crop",
-      author_name: payload.author_name || "AI Agent",
-      is_published: true,
-      published_at: new Date().toISOString(),
-      seo_title: payload.title,
-      seo_description: payload.excerpt || payload.content_html.substring(0, 120),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .insert([{
+        title: body.title,
+        slug: body.slug,
+        excerpt: body.excerpt || "",
+        content_html: body.content_html || "",
+        featured_image_url: body.featured_image_url || "",
+        author_name: body.author_name || "Admin",
+        is_published: body.is_published ?? true,
+        published_at: body.is_published ? new Date().toISOString() : null,
+        seo_title: body.seo_title || body.title,
+        seo_description: body.seo_description || body.excerpt,
+      }])
+      .select()
+      .single();
 
-    posts.unshift(newPost); // Add to beginning
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json(data, { status: 201 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
 
-    // Serialize and Write Back
-    fs.writeFileSync(dbPath, JSON.stringify(posts, null, 2), "utf-8");
+export async function PUT(request: NextRequest) {
+  try {
+    const supabase = getSupabase();
+    const body = await request.json();
+    const { id, ...updates } = body;
 
-    return NextResponse.json({ success: true, post: newPost }, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ error: "Invalid payload or internal error: " + error.message }, { status: 400 });
+    if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json(data);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = getSupabase();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+
+    const { error } = await supabase.from("blog_posts").delete().eq("id", id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

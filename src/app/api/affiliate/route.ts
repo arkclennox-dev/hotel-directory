@@ -1,60 +1,61 @@
-import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-import { checkApiKey } from "@/lib/api-auth";
-import { Hotel, AffiliateLink } from "@/lib/types";
+import { NextRequest, NextResponse } from "next/server";
+import { getSupabase } from "@/lib/supabase";
 
-export async function POST(request: Request) {
-  const authResponse = checkApiKey(request);
-  if (authResponse) return authResponse;
-
+export async function POST(request: NextRequest) {
   try {
-    const payload = await request.json();
-    
-    if (!payload.hotel_id || !payload.provider || !payload.affiliate_url) {
-      return NextResponse.json({ error: "Missing required fields: hotel_id, provider, affiliate_url" }, { status: 400 });
+    const supabase = getSupabase();
+    const { hotel_id, links } = await request.json();
+
+    if (!hotel_id) return NextResponse.json({ error: "hotel_id is required" }, { status: 400 });
+
+    const providers = ["traveloka", "tiketcom", "agoda"] as const;
+    const results = [];
+
+    for (const provider of providers) {
+      const link = links[provider];
+      if (!link?.url) continue;
+
+      // Upsert: update if exists, insert if not
+      const { data, error } = await supabase
+        .from("affiliate_links")
+        .upsert(
+          {
+            hotel_id,
+            provider,
+            affiliate_url: link.url,
+            deeplink_url: link.deeplink || "",
+            is_active: link.active ?? true,
+          },
+          { onConflict: "hotel_id,provider" }
+        )
+        .select()
+        .single();
+
+      if (error) {
+        console.error(`Error upserting ${provider}:`, error);
+      } else {
+        results.push(data);
+      }
     }
 
-    // Read current DB
-    const dbPath = path.join(process.cwd(), "database", "hotels.json");
-    const rawData = fs.readFileSync(dbPath, "utf-8");
-    const hotels: Hotel[] = JSON.parse(rawData);
+    return NextResponse.json({ success: true, updated: results.length });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
 
-    const hotelIndex = hotels.findIndex(h => h.id === payload.hotel_id);
-    if (hotelIndex === -1) {
-      return NextResponse.json({ error: "Hotel ID not found" }, { status: 404 });
-    }
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = getSupabase();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
-    const newLink: AffiliateLink = {
-      id: "afl-" + Date.now().toString(),
-      hotel_id: payload.hotel_id,
-      provider: payload.provider, // traveloka | tiketcom | agoda
-      affiliate_url: payload.affiliate_url,
-      deeplink_url: payload.deeplink_url || "#",
-      is_active: true,
-      last_checked_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    const { error } = await supabase.from("affiliate_links").delete().eq("id", id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-    // Ensure array exists
-    if (!hotels[hotelIndex].affiliate_links) {
-      hotels[hotelIndex].affiliate_links = [];
-    }
-
-    // Replace if provider already exists, else push
-    const existingProviderIndex = hotels[hotelIndex].affiliate_links!.findIndex(l => l.provider === payload.provider);
-    if (existingProviderIndex !== -1) {
-      hotels[hotelIndex].affiliate_links![existingProviderIndex] = newLink;
-    } else {
-      hotels[hotelIndex].affiliate_links!.push(newLink);
-    }
-
-    // Serialize and Write Back
-    fs.writeFileSync(dbPath, JSON.stringify(hotels, null, 2), "utf-8");
-
-    return NextResponse.json({ success: true, message: "Affiliate link added/updated", affiliate_link: newLink }, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ error: "Invalid payload or internal error: " + error.message }, { status: 400 });
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

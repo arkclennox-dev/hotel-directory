@@ -1,63 +1,83 @@
-import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-import { checkApiKey } from "@/lib/api-auth";
-import { Hotel } from "@/lib/types";
+import { NextRequest, NextResponse } from "next/server";
+import { getSupabase } from "@/lib/supabase";
 
-export async function POST(request: Request) {
-  const authResponse = checkApiKey(request);
-  if (authResponse) return authResponse;
-
+export async function POST(request: NextRequest) {
   try {
-    const payload = await request.json();
-    
-    // Read current DB
-    const dbPath = path.join(process.cwd(), "database", "hotels.json");
-    const rawData = fs.readFileSync(dbPath, "utf-8");
-    const hotels: Hotel[] = JSON.parse(rawData);
+    const supabase = getSupabase();
+    const body = await request.json();
 
-    // AI Payload shape mapping
-    const newHotel: Hotel = {
-      id: "htl-" + Date.now().toString(),
-      name: payload.name,
-      slug: payload.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-      city_id: payload.city_id || "city-001", // Default to Jakarta if unassigned
-      short_description: payload.short_description || "",
-      full_description: payload.full_description || "",
-      address: payload.address || "",
-      latitude: payload.latitude || 0,
-      longitude: payload.longitude || 0,
-      star_rating: payload.star_rating || 3,
-      guest_rating: payload.guest_rating || 8.0,
-      review_count: payload.review_count || 10,
-      price_from: payload.price_from || 500000,
-      price_to: payload.price_to || 1500000,
-      currency: "IDR",
-      property_type: payload.property_type || "Hotel",
-      check_in_time: payload.check_in_time || "14:00",
-      check_out_time: payload.check_out_time || "12:00",
-      phone: payload.phone || "-",
-      website_url: payload.website_url || "#",
-      hero_image_url: payload.hero_image_url || "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&h=500&fit=crop",
-      is_featured: payload.is_featured || false,
-      is_published: true,
-      seo_title: payload.name + " — Harga Termurah",
-      seo_description: payload.short_description || `Booking ${payload.name} dengan harga terbaik.`,
-      categories: payload.categories || [],
-      facilities: payload.facilities || [],
-      images: payload.images || [],
-      affiliate_links: payload.affiliate_links || [],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    const { data, error } = await supabase
+      .from("hotels")
+      .insert([{
+        name: body.name,
+        slug: body.slug,
+        city_id: body.city_id || null,
+        short_description: body.short_description,
+        full_description: body.full_description || "",
+        address: body.address || "",
+        star_rating: body.star_rating || 3,
+        guest_rating: 0,
+        review_count: 0,
+        price_from: body.price_from || 0,
+        price_to: body.price_to || 0,
+        currency: "IDR",
+        property_type: body.property_type || "Hotel",
+        check_in_time: "14:00",
+        check_out_time: "12:00",
+        phone: body.phone || "",
+        website_url: body.website_url || "",
+        hero_image_url: body.hero_image_url || "",
+        is_featured: body.is_featured || false,
+        is_published: body.is_published ?? true,
+        seo_title: body.seo_title || body.name,
+        seo_description: body.seo_description || body.short_description,
+      }])
+      .select()
+      .single();
 
-    hotels.push(newHotel); // Append to list
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    return NextResponse.json(data, { status: 201 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
 
-    // Serialize and Write Back
-    fs.writeFileSync(dbPath, JSON.stringify(hotels, null, 2), "utf-8");
+export async function PUT(request: NextRequest) {
+  try {
+    const supabase = getSupabase();
+    const body = await request.json();
+    const { id, ...updates } = body;
 
-    return NextResponse.json({ success: true, hotel: newHotel }, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ error: "Invalid payload or internal error: " + error.message }, { status: 400 });
+    if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+
+    const { data, error } = await supabase
+      .from("hotels")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json(data);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = getSupabase();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+
+    const { error } = await supabase.from("hotels").delete().eq("id", id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
