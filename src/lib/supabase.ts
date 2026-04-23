@@ -1,13 +1,41 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Lazy initialization — client hanya dibuat saat pertama kali dibutuhkan,
+// bukan saat module di-import (mencegah crash saat build time jika env belum diset)
+let _supabase: SupabaseClient | null = null;
+let _supabaseClient: SupabaseClient | null = null;
 
-// Server-side client: uses service role key (bypasses RLS)
-// Only used in server components and API routes
-export const supabase = createClient(supabaseUrl, supabaseServiceKey);
+export function getSupabase(): SupabaseClient {
+  if (!_supabase) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      throw new Error(
+        "Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required."
+      );
+    }
+    _supabase = createClient(url, key);
+  }
+  return _supabase;
+}
 
-// Browser-safe client: uses anon key (respects RLS)
-// Use this in client components if direct Supabase access is needed
-export const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+export function getSupabaseClient(): SupabaseClient {
+  if (!_supabaseClient) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !key) {
+      throw new Error(
+        "Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required."
+      );
+    }
+    _supabaseClient = createClient(url, key);
+  }
+  return _supabaseClient;
+}
+
+// Shorthand — untuk backward compatibility
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    return getSupabase()[prop as keyof SupabaseClient];
+  },
+});
