@@ -1,9 +1,9 @@
 import { getSiteStats, getRecentBlogPosts } from "@/lib/queries";
 import Link from "next/link";
 
-export default function AdminDashboard() {
-  const stats = getSiteStats();
-  const recentBlogs = getRecentBlogPosts(5);
+export default async function AdminDashboard() {
+  const stats = await getSiteStats();
+  const recentBlogs = await getRecentBlogPosts(5);
 
   return (
     <div className="space-y-6">

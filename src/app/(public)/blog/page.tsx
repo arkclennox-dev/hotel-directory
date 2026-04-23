@@ -7,8 +7,8 @@ export const metadata: Metadata = {
   description: "Baca artikel tips, rekomendasi, dan panduan menginap di hotel terbaik di Indonesia.",
 };
 
-export default function BlogIndexPage() {
-  const posts = getBlogPosts();
+export default async function BlogIndexPage() {
+  const posts = await getBlogPosts();
   const featured = posts[0];
   const rest = posts.slice(1);
 

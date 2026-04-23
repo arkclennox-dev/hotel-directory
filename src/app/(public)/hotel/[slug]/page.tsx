@@ -7,7 +7,6 @@ import {
   Flower2, Shirt, Droplets, Bath, Mountain, Baby, Presentation, Bus
 } from "lucide-react";
 import { getHotelBySlug, getSimilarHotels, getHotels } from "@/lib/queries";
-import { cities } from "@/lib/data";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import HotelCard from "@/components/ui/HotelCard";
 import CTAButtonsAffiliate from "@/components/ui/CTAButtonsAffiliate";
@@ -40,7 +39,7 @@ const sampleFacilities = [
 ];
 
 export async function generateStaticParams() {
-  const hotels = getHotels();
+  const hotels = await getHotels();
   return hotels.map((hotel) => ({ slug: hotel.slug }));
 }
 
@@ -49,7 +48,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const hotel = getHotelBySlug(params.slug);
+  const hotel = await getHotelBySlug(params.slug);
   if (!hotel) return {};
   return {
     title: hotel.seo_title || hotel.name,
@@ -62,19 +61,16 @@ export async function generateMetadata({
   };
 }
 
-export default function HotelDetailPage({
+export default async function HotelDetailPage({
   params,
 }: {
   params: { slug: string };
 }) {
-  const hotel = getHotelBySlug(params.slug);
+  const hotel = await getHotelBySlug(params.slug);
   if (!hotel) notFound();
 
-  const city = cities.find((c) => c.id === hotel.city_id);
-  const similarHotels = getSimilarHotels(hotel, 4).map((h) => ({
-    ...h,
-    city: cities.find((c) => c.id === h.city_id),
-  }));
+  const city = hotel.city;
+  const similarHotels = await getSimilarHotels(hotel, 4);
 
   const faqItems = [
     {

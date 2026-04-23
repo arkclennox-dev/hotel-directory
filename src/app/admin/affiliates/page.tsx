@@ -1,12 +1,12 @@
-import { getHotels } from "@/lib/queries";
+import { getAllHotelsAdmin } from "@/lib/queries";
 import Link from "next/link";
 import { Link2, Edit } from "lucide-react";
 
 // In a real app with Supabase, we would fetch affiliate links separately or as a joined query.
 // For this UI mockup based on JSON data, we assume hotels have some mock provider data.
 
-export default function AdminAffiliatesPage() {
-  const hotels = getHotels();
+export default async function AdminAffiliatesPage() {
+  const hotels = await getAllHotelsAdmin();
 
   return (
     <div className="space-y-6">

@@ -4,18 +4,18 @@ import { MapPin } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { getCityBySlug, searchHotels, getCities, getLandmarksByCity, getCategories } from "@/lib/queries";
-import { cities } from "@/lib/data";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import HotelCard from "@/components/ui/HotelCard";
 import SectionHeader, { HotelGrid } from "@/components/ui/SectionHeader";
 import FAQSection from "@/components/ui/FAQSection";
 
 export async function generateStaticParams() {
-  return getCities().map((city) => ({ slug: city.slug }));
+  const cities = await getCities();
+  return cities.map((city) => ({ slug: city.slug }));
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const city = getCityBySlug(params.slug);
+  const city = await getCityBySlug(params.slug);
   if (!city) return {};
   return {
     title: city.seo_title || `Hotel di ${city.name}`,
@@ -23,15 +23,15 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default function CityDetailPage({ params, searchParams }: { params: { slug: string }, searchParams: { category?: string } }) {
-  const city = getCityBySlug(params.slug);
+export default async function CityDetailPage({ params, searchParams }: { params: { slug: string }, searchParams: { category?: string } }) {
+  const city = await getCityBySlug(params.slug);
   if (!city) notFound();
 
   // Filter hotels by city and category (if provided)
-  const cityHotelsResult = searchHotels({ city_slug: params.slug, category_slug: searchParams.category, per_page: 100 });
+  const cityHotelsResult = await searchHotels({ city_slug: params.slug, category_slug: searchParams.category, per_page: 100 });
   const cityHotels = cityHotelsResult.data;
-  const cityLandmarks = getLandmarksByCity(city.id);
-  const categoriesList = getCategories();
+  const cityLandmarks = await getLandmarksByCity(city.id);
+  const categoriesList = await getCategories();
 
   const faqItems = [
     {

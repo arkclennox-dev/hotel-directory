@@ -5,11 +5,12 @@ import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import Link from "next/link";
 
 export async function generateStaticParams() {
-  return getBlogPosts().map((post) => ({ slug: post.slug }));
+  const posts = await getBlogPosts();
+  return posts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = getBlogPostBySlug(params.slug);
+  const post = await getBlogPostBySlug(params.slug);
   if (!post) return {};
   return {
     title: post.seo_title || post.title,
@@ -18,11 +19,12 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default function BlogDetailPage({ params }: { params: { slug: string } }) {
-  const post = getBlogPostBySlug(params.slug);
+export default async function BlogDetailPage({ params }: { params: { slug: string } }) {
+  const post = await getBlogPostBySlug(params.slug);
   if (!post) notFound();
 
-  const relatedPosts = getRecentBlogPosts(3).filter((p) => p.id !== post.id);
+  const recentPosts = await getRecentBlogPosts(3);
+  const relatedPosts = recentPosts.filter((p) => p.id !== post.id);
 
   return (
     <div className="pt-28 pb-16">

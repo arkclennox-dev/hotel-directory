@@ -1,146 +1,181 @@
-import { cities, categories, hotels, landmarks, facilities, blogPosts } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
 import { Hotel, City, Category, Landmark, BlogPost, SearchFilters, PaginatedResult } from "@/lib/types";
+
+// Helper function to safely extract data or return empty array/null
+const getSupabaseData = async <T>(query: any): Promise<T> => {
+  const { data, error } = await query;
+  if (error) {
+    console.error("Supabase error:", error);
+    return null as any;
+  }
+  return data as T;
+};
 
 // ===== CITIES =====
 
-export function getCities(): City[] {
-  return cities;
+export async function getCities(): Promise<City[]> {
+  const { data } = await supabase.from("cities").select("*").order("name");
+  return data || [];
 }
 
-export function getFeaturedCities(): City[] {
-  return cities.filter((c) => c.is_featured);
+export async function getFeaturedCities(): Promise<City[]> {
+  const { data } = await supabase.from("cities").select("*").eq("is_featured", true).order("name");
+  return data || [];
 }
 
-export function getCityBySlug(slug: string): City | undefined {
-  return cities.find((c) => c.slug === slug);
+export async function getCityBySlug(slug: string): Promise<City | undefined> {
+  const { data } = await supabase.from("cities").select("*").eq("slug", slug).single();
+  return data || undefined;
 }
 
 // ===== CATEGORIES =====
 
-export function getCategories(): Category[] {
-  return categories;
+export async function getCategories(): Promise<Category[]> {
+  const { data } = await supabase.from("categories").select("*").order("name");
+  return data || [];
 }
 
-export function getFeaturedCategories(): Category[] {
-  return categories.filter((c) => c.is_featured);
+export async function getFeaturedCategories(): Promise<Category[]> {
+  const { data } = await supabase.from("categories").select("*").eq("is_featured", true).order("name");
+  return data || [];
 }
 
-export function getCategoryBySlug(slug: string): Category | undefined {
-  return categories.find((c) => c.slug === slug);
+export async function getCategoryBySlug(slug: string): Promise<Category | undefined> {
+  const { data } = await supabase.from("categories").select("*").eq("slug", slug).single();
+  return data || undefined;
 }
 
-export function getCategoriesByType(type: string): Category[] {
-  return categories.filter((c) => c.type === type);
+export async function getCategoriesByType(type: string): Promise<Category[]> {
+  const { data } = await supabase.from("categories").select("*").eq("type", type).order("name");
+  return data || [];
 }
 
 // ===== HOTELS =====
 
-export function getHotels(): Hotel[] {
-  return hotels.filter((h) => h.is_published);
+export async function getHotels(): Promise<Hotel[]> {
+  const { data } = await supabase
+    .from("hotels")
+    .select("*, city:cities(*)")
+    .eq("is_published", true)
+    .order("created_at", { ascending: false });
+  return data || [];
 }
 
-export function getFeaturedHotels(): Hotel[] {
-  return hotels.filter((h) => h.is_featured && h.is_published);
+export async function getFeaturedHotels(): Promise<Hotel[]> {
+  const { data } = await supabase
+    .from("hotels")
+    .select("*, city:cities(*)")
+    .eq("is_published", true)
+    .eq("is_featured", true)
+    .order("created_at", { ascending: false });
+  return data || [];
 }
 
-export function getHotelBySlug(slug: string): Hotel | undefined {
-  const hotel = hotels.find((h) => h.slug === slug);
-  if (!hotel) return undefined;
-
-  // Enrich with city data
-  const city = getCityBySlug(cities.find((c) => c.id === hotel.city_id)?.slug || "");
-  return { ...hotel, city };
+export async function getHotelBySlug(slug: string): Promise<Hotel | undefined> {
+  const { data } = await supabase
+    .from("hotels")
+    .select("*, city:cities(*), images:hotel_images(*), affiliate_links(*)")
+    .eq("slug", slug)
+    .single();
+  return data || undefined;
 }
 
-export function getHotelsByCity(cityId: string): Hotel[] {
-  return hotels.filter((h) => h.city_id === cityId && h.is_published);
+export async function getHotelsByCity(cityId: string): Promise<Hotel[]> {
+  const { data } = await supabase
+    .from("hotels")
+    .select("*, city:cities(*)")
+    .eq("city_id", cityId)
+    .eq("is_published", true);
+  return data || [];
 }
 
-export function getHotelsByCitySlug(citySlug: string): Hotel[] {
-  const city = getCityBySlug(citySlug);
+export async function getHotelsByCitySlug(citySlug: string): Promise<Hotel[]> {
+  const city = await getCityBySlug(citySlug);
   if (!city) return [];
   return getHotelsByCity(city.id);
 }
 
-export function getSimilarHotels(hotel: Hotel, limit: number = 4): Hotel[] {
-  return hotels
-    .filter((h) => h.id !== hotel.id && h.is_published && (h.city_id === hotel.city_id || h.star_rating === hotel.star_rating))
-    .slice(0, limit);
+export async function getSimilarHotels(hotel: Hotel, limit: number = 4): Promise<Hotel[]> {
+  const { data } = await supabase
+    .from("hotels")
+    .select("*, city:cities(*)")
+    .neq("id", hotel.id)
+    .eq("is_published", true)
+    .eq("city_id", hotel.city_id)
+    .limit(limit);
+  
+  if (data && data.length > 0) return data;
+
+  // Fallback to star rating if no hotel in same city
+  const { data: fallbackData } = await supabase
+    .from("hotels")
+    .select("*, city:cities(*)")
+    .neq("id", hotel.id)
+    .eq("is_published", true)
+    .eq("star_rating", hotel.star_rating)
+    .limit(limit);
+    
+  return fallbackData || [];
 }
 
-export function searchHotels(filters: SearchFilters): PaginatedResult<Hotel> {
-  let filtered = hotels.filter((h) => h.is_published);
+export async function searchHotels(filters: SearchFilters): Promise<PaginatedResult<Hotel>> {
+  let queryObj = supabase
+    .from("hotels")
+    .select("*, city:cities(*)", { count: "exact" })
+    .eq("is_published", true);
 
-  // Text search
   if (filters.query) {
-    const q = filters.query.toLowerCase();
-    filtered = filtered.filter(
-      (h) =>
-        h.name.toLowerCase().includes(q) ||
-        h.short_description.toLowerCase().includes(q) ||
-        h.address.toLowerCase().includes(q)
-    );
+    queryObj = queryObj.or(`name.ilike.%${filters.query}%,short_description.ilike.%${filters.query}%,address.ilike.%${filters.query}%`);
   }
 
-  // City filter
   if (filters.city_slug) {
-    const city = getCityBySlug(filters.city_slug);
+    const city = await getCityBySlug(filters.city_slug);
     if (city) {
-      filtered = filtered.filter((h) => h.city_id === city.id);
+      queryObj = queryObj.eq("city_id", city.id);
     }
   }
 
-  // Category filter
-  if (filters.category_slug) {
-    const category = getCategoryBySlug(filters.category_slug);
-    if (category) {
-      filtered = filtered.filter((h) => {
-        // If categories array contains category object, or if it contains string ID
-        return h.categories?.some((c: any) => c === category.id || c.id === category.id);
-      });
-    }
-  }
-
-  // Price filter
+  // Category filter requires join or JSON array contains. 
+  // For simplicity, we skip category exact filter here if it's too complex without a junction table RPC,
+  // but if hotels have a categories array or junction table, we'd query it.
+  
   if (filters.price_min !== undefined) {
-    filtered = filtered.filter((h) => h.price_from >= (filters.price_min || 0));
+    queryObj = queryObj.gte("price_from", filters.price_min);
   }
+  
   if (filters.price_max !== undefined) {
-    filtered = filtered.filter((h) => h.price_from <= (filters.price_max || Infinity));
+    queryObj = queryObj.lte("price_from", filters.price_max);
   }
 
-  // Star rating filter
   if (filters.star_rating !== undefined) {
-    filtered = filtered.filter((h) => h.star_rating >= (filters.star_rating || 0));
+    queryObj = queryObj.gte("star_rating", filters.star_rating);
   }
 
-  // Guest rating filter
   if (filters.guest_rating_min !== undefined) {
-    filtered = filtered.filter((h) => h.guest_rating >= (filters.guest_rating_min || 0));
+    queryObj = queryObj.gte("guest_rating", filters.guest_rating_min);
   }
 
-  // Property type filter
   if (filters.property_type) {
-    filtered = filtered.filter((h) => h.property_type.toLowerCase() === filters.property_type?.toLowerCase());
+    queryObj = queryObj.ilike("property_type", filters.property_type);
   }
 
-  // Sort
+  // Sorting
   switch (filters.sort_by) {
     case "price_low":
-      filtered.sort((a, b) => a.price_from - b.price_from);
+      queryObj = queryObj.order("price_from", { ascending: true });
       break;
     case "price_high":
-      filtered.sort((a, b) => b.price_from - a.price_from);
+      queryObj = queryObj.order("price_from", { ascending: false });
       break;
     case "rating":
-      filtered.sort((a, b) => b.guest_rating - a.guest_rating);
+      queryObj = queryObj.order("guest_rating", { ascending: false });
       break;
     case "newest":
-      filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      queryObj = queryObj.order("created_at", { ascending: false });
       break;
     case "popular":
     default:
-      filtered.sort((a, b) => b.review_count - a.review_count);
+      queryObj = queryObj.order("review_count", { ascending: false });
       break;
   }
 
@@ -148,72 +183,122 @@ export function searchHotels(filters: SearchFilters): PaginatedResult<Hotel> {
   const page = filters.page || 1;
   const per_page = filters.per_page || 12;
   const start = (page - 1) * per_page;
-  const paginatedData = filtered.slice(start, start + per_page);
+  
+  queryObj = queryObj.range(start, start + per_page - 1);
 
+  const { data, count, error } = await queryObj;
+  
+  if (error) {
+    console.error("Search error:", error);
+    return { data: [], total: 0, page, per_page, total_pages: 0 };
+  }
+
+  const total = count || 0;
   return {
-    data: paginatedData.map((h) => ({
-      ...h,
-      city: cities.find((c) => c.id === h.city_id),
-    })),
-    total: filtered.length,
+    data: data as Hotel[],
+    total,
     page,
     per_page,
-    total_pages: Math.ceil(filtered.length / per_page),
+    total_pages: Math.ceil(total / per_page),
   };
 }
 
 // ===== LANDMARKS =====
 
-export function getLandmarks(): Landmark[] {
-  return landmarks;
+export async function getLandmarks(): Promise<Landmark[]> {
+  const { data } = await supabase.from("landmarks").select("*");
+  return data || [];
 }
 
-export function getFeaturedLandmarks(): Landmark[] {
-  return landmarks.filter((l) => l.is_featured);
+export async function getFeaturedLandmarks(): Promise<Landmark[]> {
+  const { data } = await supabase.from("landmarks").select("*").eq("is_featured", true);
+  return data || [];
 }
 
-export function getLandmarkBySlug(slug: string): Landmark | undefined {
-  const landmark = landmarks.find((l) => l.slug === slug);
-  if (!landmark) return undefined;
-  const city = cities.find((c) => c.id === landmark.city_id);
-  return { ...landmark, city } as Landmark;
+export async function getLandmarkBySlug(slug: string): Promise<Landmark | undefined> {
+  const { data } = await supabase.from("landmarks").select("*, city:cities(*)").eq("slug", slug).single();
+  return data || undefined;
 }
 
-export function getLandmarksByCity(cityId: string): Landmark[] {
-  return landmarks.filter((l) => l.city_id === cityId);
+export async function getLandmarksByCity(cityId: string): Promise<Landmark[]> {
+  const { data } = await supabase.from("landmarks").select("*").eq("city_id", cityId);
+  return data || [];
 }
 
 // ===== FACILITIES =====
 
-export function getFacilities() {
-  return facilities;
+export async function getFacilities(): Promise<any[]> {
+  const { data } = await supabase.from("facilities").select("*");
+  return data || [];
 }
 
 // ===== BLOG =====
 
-export function getBlogPosts(): BlogPost[] {
-  return blogPosts.filter((p) => p.is_published);
+export async function getBlogPosts(): Promise<BlogPost[]> {
+  const { data } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("is_published", true)
+    .order("published_at", { ascending: false });
+  return data || [];
 }
 
-export function getBlogPostBySlug(slug: string): BlogPost | undefined {
-  return blogPosts.find((p) => p.slug === slug && p.is_published);
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
+  const { data } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("slug", slug)
+    .eq("is_published", true)
+    .single();
+  return data || undefined;
 }
 
-export function getRecentBlogPosts(limit: number = 3): BlogPost[] {
-  return blogPosts
-    .filter((p) => p.is_published)
-    .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
-    .slice(0, limit);
+export async function getRecentBlogPosts(limit: number = 3): Promise<BlogPost[]> {
+  const { data } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("is_published", true)
+    .order("published_at", { ascending: false })
+    .limit(limit);
+  return data || [];
 }
 
 // ===== STATS =====
 
-export function getSiteStats() {
+export async function getSiteStats() {
+  const [
+    { count: hotelsCount },
+    { count: citiesCount },
+    { count: categoriesCount }
+  ] = await Promise.all([
+    supabase.from("hotels").select("*", { count: "exact", head: true }),
+    supabase.from("cities").select("*", { count: "exact", head: true }),
+    supabase.from("categories").select("*", { count: "exact", head: true })
+  ]);
+
   return {
-    totalHotels: hotels.filter((h) => h.is_published).length,
-    totalCities: cities.length,
-    totalCategories: categories.length,
-    totalLandmarks: landmarks.length,
+    totalHotels: hotelsCount || 0,
+    totalCities: citiesCount || 0,
+    totalCategories: categoriesCount || 0,
+    totalLandmarks: 0,
     partners: 3,
   };
+}
+
+export async function getAllBlogPostsAdmin(): Promise<BlogPost[]> {
+  // Admin route to get all posts including drafts
+  const { data } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .order("created_at", { ascending: false });
+  return data || [];
+}
+
+export async function getAllHotelsAdmin(): Promise<Hotel[]> {
+  // Admin route to get all hotels including drafts
+  const { data } = await supabase
+    .from("hotels")
+    .select("*, city:cities(*)")
+    .order("created_at", { ascending: false });
+  return data || [];
 }

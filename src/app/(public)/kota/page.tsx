@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   description: "Jelajahi hotel di seluruh kota Indonesia. Dari Jakarta, Bali, Yogyakarta, Bandung, hingga Lombok.",
 };
 
-export default function KotaIndexPage() {
-  const allCities = getCities();
+export default async function KotaIndexPage() {
+  const allCities = await getCities();
 
   // Group by island
   const grouped = allCities.reduce((acc, city) => {

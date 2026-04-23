@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { Tag, Building2, Plane, Train, ShoppingBag, MapPin, Users, Briefcase, Heart, Wallet, Sparkles, Clock, Home, TreePalm } from "lucide-react";
-import { getCategories, getCategoriesByType } from "@/lib/queries";
+import { getCategories } from "@/lib/queries";
 import SectionHeader from "@/components/ui/SectionHeader";
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -25,8 +25,8 @@ const typeLabels: Record<string, string> = {
   fasilitas: "Berdasarkan Fasilitas",
 };
 
-export default function KategoriIndexPage() {
-  const categories = getCategories();
+export default async function KategoriIndexPage() {
+  const categories = await getCategories();
   const types = ["lokasi", "kebutuhan", "tipe_properti"];
 
   return (
@@ -42,7 +42,7 @@ export default function KategoriIndexPage() {
         </div>
 
         {types.map((type) => {
-          const typeCats = getCategoriesByType(type);
+          const typeCats = categories.filter((c) => c.type === type);
           if (typeCats.length === 0) return null;
           return (
             <div key={type} className="mb-12">

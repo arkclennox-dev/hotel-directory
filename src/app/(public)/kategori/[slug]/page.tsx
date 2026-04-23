@@ -1,18 +1,19 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { getCategoryBySlug, getHotels, getCategories } from "@/lib/queries";
-import { cities } from "@/lib/data";
+
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import HotelCard from "@/components/ui/HotelCard";
 import SectionHeader, { HotelGrid } from "@/components/ui/SectionHeader";
 import FAQSection from "@/components/ui/FAQSection";
 
 export async function generateStaticParams() {
-  return getCategories().map((cat) => ({ slug: cat.slug }));
+  const categories = await getCategories();
+  return categories.map((cat) => ({ slug: cat.slug }));
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const category = getCategoryBySlug(params.slug);
+  const category = await getCategoryBySlug(params.slug);
   if (!category) return {};
   return {
     title: category.seo_title || category.name,
@@ -20,15 +21,12 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default function CategoryDetailPage({ params }: { params: { slug: string } }) {
-  const category = getCategoryBySlug(params.slug);
+export default async function CategoryDetailPage({ params }: { params: { slug: string } }) {
+  const category = await getCategoryBySlug(params.slug);
   if (!category) notFound();
 
   // For demo, show all hotels enriched with city data
-  const allHotels = getHotels().map((h) => ({
-    ...h,
-    city: cities.find((c) => c.id === h.city_id),
-  }));
+  const allHotels = await getHotels();
 
   const faqItems = [
     {

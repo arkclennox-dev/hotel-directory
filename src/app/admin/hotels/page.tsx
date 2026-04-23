@@ -1,9 +1,9 @@
-import { getHotels } from "@/lib/queries";
+import { getAllHotelsAdmin } from "@/lib/queries";
 import Link from "next/link";
 import { Plus, Edit, Trash2, MapPin, Star } from "lucide-react";
 
-export default function AdminHotelsPage() {
-  const hotels = getHotels();
+export default async function AdminHotelsPage() {
+  const hotels = await getAllHotelsAdmin();
 
   return (
     <div className="space-y-6">

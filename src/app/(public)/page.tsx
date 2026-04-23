@@ -7,7 +7,6 @@ import SearchBar from "@/components/ui/SearchBar";
 import HotelCard from "@/components/ui/HotelCard";
 import SectionHeader, { StatCard, HotelGrid } from "@/components/ui/SectionHeader";
 import { getFeaturedHotels, getFeaturedCities, getFeaturedCategories, getFeaturedLandmarks, getRecentBlogPosts, getSiteStats } from "@/lib/queries";
-import { cities } from "@/lib/data";
 
 const iconMap: Record<string, React.ReactNode> = {
   Plane: <Plane className="w-5 h-5" />,
@@ -24,13 +23,13 @@ const iconMap: Record<string, React.ReactNode> = {
   Palmtree: <TreePalm className="w-5 h-5" />,
 };
 
-export default function HomePage() {
-  const featuredHotels = getFeaturedHotels();
-  const featuredCities = getFeaturedCities();
-  const featuredCategories = getFeaturedCategories();
-  const featuredLandmarks = getFeaturedLandmarks();
-  const recentPosts = getRecentBlogPosts(3);
-  const stats = getSiteStats();
+export default async function HomePage() {
+  const featuredHotels = await getFeaturedHotels();
+  const featuredCities = await getFeaturedCities();
+  const featuredCategories = await getFeaturedCategories();
+  const featuredLandmarks = await getFeaturedLandmarks();
+  const recentPosts = await getRecentBlogPosts(3);
+  const stats = await getSiteStats();
 
   return (
     <>
@@ -119,9 +118,7 @@ export default function HomePage() {
           </div>
           <HotelGrid>
             {featuredHotels.slice(0, 8).map((hotel) => {
-              // Enrich with city
-              const city = cities.find((c: any) => c.id === hotel.city_id);
-              return <HotelCard key={hotel.id} hotel={{ ...hotel, city }} />;
+              return <HotelCard key={hotel.id} hotel={hotel} />;
             })}
           </HotelGrid>
           <div className="mt-8 text-center md:hidden">

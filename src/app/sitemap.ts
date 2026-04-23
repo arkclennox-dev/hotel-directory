@@ -3,11 +3,11 @@ import { getHotels, getCities, getCategories, getBlogPosts } from "@/lib/queries
 
 const BASE_URL = "https://lalioma.id";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const hotels = getHotels();
-  const cities = getCities();
-  const categories = getCategories();
-  const posts = getBlogPosts();
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const hotels = await getHotels();
+  const cities = await getCities();
+  const categories = await getCategories();
+  const posts = await getBlogPosts();
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: BASE_URL, lastModified: new Date(), changeFrequency: "daily", priority: 1 },

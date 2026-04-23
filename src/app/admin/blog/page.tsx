@@ -1,9 +1,9 @@
-import { getBlogPosts } from "@/lib/queries";
+import { getAllBlogPostsAdmin } from "@/lib/queries";
 import Link from "next/link";
 import { Plus, Edit, Trash2 } from "lucide-react";
 
-export default function AdminBlogPage() {
-  const posts = getBlogPosts();
+export default async function AdminBlogPage() {
+  const posts = await getAllBlogPostsAdmin();
 
   return (
     <div className="space-y-6">
