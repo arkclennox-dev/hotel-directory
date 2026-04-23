@@ -1,11 +1,11 @@
-import { getAllAffiliateLinksByHotelAdmin } from "@/lib/queries";
+import { getAllHotelsAdmin } from "@/lib/queries";
 import Link from "next/link";
 import { Pencil, Link2, CheckCircle2, XCircle } from "lucide-react";
 
 const providers = ["traveloka", "tiketcom", "agoda"] as const;
 
 export default async function AdminAffiliatesPage() {
-  const hotels = await getAllAffiliateLinksByHotelAdmin() as any[];
+  const hotels = await getAllHotelsAdmin();
 
   return (
     <div className="space-y-6">
@@ -66,7 +66,7 @@ export default async function AdminAffiliatesPage() {
                     })}
                     <td className="px-5 py-4 text-right">
                       <Link
-                        href={`/admin/affiliates/form?hotel_id=${hotel.id}`}
+                        href={`/admin/affiliates/form?hotel_id=${hotel.id}&name=${encodeURIComponent(hotel.name)}`}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-700 text-gray-300 hover:text-white hover:border-gray-600 hover:bg-gray-700 transition-colors text-xs"
                       >
                         <Pencil className="w-3 h-3" />
