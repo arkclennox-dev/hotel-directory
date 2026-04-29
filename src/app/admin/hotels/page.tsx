@@ -1,6 +1,8 @@
 import { getAllHotelsAdmin } from "@/lib/queries";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, MapPin, Star, Eye, EyeOff } from "lucide-react";
+import { Plus, Pencil, MapPin, Star, Eye, EyeOff } from "lucide-react";
+import DeleteHotelButton from "./DeleteButton";
+import ImportButton from "./ImportButton";
 
 export default async function AdminHotelsPage() {
   const hotels = await getAllHotelsAdmin();
@@ -13,13 +15,16 @@ export default async function AdminHotelsPage() {
           <h1 className="text-2xl font-bold text-white">Hotels</h1>
           <p className="text-sm text-gray-400 mt-0.5">{hotels.length} hotel di Supabase</p>
         </div>
-        <Link
-          href="/admin/hotels/form"
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Tambah Hotel
-        </Link>
+        <div className="flex items-center gap-2">
+          <ImportButton />
+          <Link
+            href="/admin/hotels/form"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Tambah Hotel
+          </Link>
+        </div>
       </div>
 
       {/* Table */}
@@ -105,9 +110,7 @@ export default async function AdminHotelsPage() {
                       >
                         <Pencil className="w-4 h-4" />
                       </Link>
-                      <button className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <DeleteHotelButton id={hotel.id} name={hotel.name} />
                     </div>
                   </td>
                 </tr>

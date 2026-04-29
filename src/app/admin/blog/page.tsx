@@ -1,6 +1,7 @@
 import { getAllBlogPostsAdmin } from "@/lib/queries";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, Eye, EyeOff, BookOpen } from "lucide-react";
+import { Plus, Pencil, Eye, EyeOff, BookOpen } from "lucide-react";
+import DeleteBlogButton from "./DeleteButton";
 
 export default async function AdminBlogPage() {
   const posts = await getAllBlogPostsAdmin();
@@ -80,9 +81,7 @@ export default async function AdminBlogPage() {
                       <Link href={`/admin/blog/form?id=${post.id}`} className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
                         <Pencil className="w-4 h-4" />
                       </Link>
-                      <button className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <DeleteBlogButton id={post.id} title={post.title} />
                     </div>
                   </td>
                 </tr>

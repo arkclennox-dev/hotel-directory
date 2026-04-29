@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { getCategoryBySlug, getHotels, getCategories } from "@/lib/queries";
+import { getCategoryBySlug, searchHotels, getCategories } from "@/lib/queries";
 
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import HotelCard from "@/components/ui/HotelCard";
@@ -25,8 +25,7 @@ export default async function CategoryDetailPage({ params }: { params: { slug: s
   const category = await getCategoryBySlug(params.slug);
   if (!category) notFound();
 
-  // For demo, show all hotels enriched with city data
-  const allHotels = await getHotels();
+  const { data: allHotels } = await searchHotels({ category_slug: params.slug, per_page: 100 });
 
   const faqItems = [
     {

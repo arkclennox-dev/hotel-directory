@@ -135,6 +135,12 @@ export async function searchHotels(filters: SearchFilters): Promise<PaginatedRes
     const { data: city } = await supabase.from("cities").select("id").eq("slug", filters.city_slug).single();
     if (city) query = query.eq("city_id", city.id);
   }
+  if (filters.category_slug) {
+    const { data: cat } = await supabase.from("categories").select("name, type").eq("slug", filters.category_slug).single();
+    if (cat && cat.type === "tipe_properti") {
+      query = query.ilike("property_type", `%${cat.name}%`);
+    }
+  }
   if (filters.price_min !== undefined) query = query.gte("price_from", filters.price_min);
   if (filters.price_max !== undefined) query = query.lte("price_from", filters.price_max);
   if (filters.star_rating !== undefined) query = query.gte("star_rating", filters.star_rating);

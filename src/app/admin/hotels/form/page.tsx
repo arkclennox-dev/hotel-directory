@@ -112,7 +112,7 @@ function HotelFormContent() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-white">{isEdit ? `Edit: ${form.name}` : "Tambah Hotel Baru"}</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Data disimpan ke database/hotels.json</p>
+          <p className="text-sm text-gray-400 mt-0.5">Data disimpan ke Supabase</p>
         </div>
       </div>
 
@@ -140,7 +140,7 @@ function HotelFormContent() {
             <div>
               <label className={labelClass}>City ID</label>
               <input name="city_id" value={form.city_id} onChange={handleChange} placeholder="city-001" className={inputClass} />
-              <p className="text-xs text-gray-500 mt-1">Lihat ID kota di database/cities.json</p>
+              <p className="text-xs text-gray-500 mt-1">Lihat ID kota di tabel cities Supabase</p>
             </div>
             <div>
               <label className={labelClass}>Telepon</label>

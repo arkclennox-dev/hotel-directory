@@ -33,8 +33,7 @@ const facilityIcons: Record<string, React.ReactNode> = {
   "Shuttle Bandara": <Bus className="w-4 h-4" />,
 };
 
-// Sample facilities for display (since hotels don't have full facility relations in mock)
-const sampleFacilities = [
+const defaultFacilities = [
   "WiFi Gratis", "AC", "Restoran", "Resepsionis 24 Jam", "Parkir Gratis", "Kolam Renang",
 ];
 
@@ -227,7 +226,10 @@ export default async function HotelDetailPage({
               <div className="glass-card p-6">
                 <h2 className="text-lg font-semibold text-foreground mb-4">Fasilitas</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {sampleFacilities.map((fac) => (
+                  {(hotel.facilities && hotel.facilities.length > 0
+                    ? hotel.facilities.map((f) => f.name)
+                    : defaultFacilities
+                  ).map((fac) => (
                     <div key={fac} className="flex items-center gap-2.5 p-2.5 rounded-lg bg-white/[0.02]">
                       <div className="text-primary">
                         {facilityIcons[fac] || <Star className="w-4 h-4" />}
