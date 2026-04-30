@@ -37,6 +37,8 @@ const defaultFacilities = [
   "WiFi Gratis", "AC", "Restoran", "Resepsionis 24 Jam", "Parkir Gratis", "Kolam Renang",
 ];
 
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
   const hotels = await getHotels();
   return hotels.map((hotel) => ({ slug: hotel.slug }));

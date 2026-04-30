@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { getAdminStats } from "@/lib/queries";
 import Link from "next/link";
 import { Hotel, BookOpen, Link2, Globe, TrendingUp, Database } from "lucide-react";

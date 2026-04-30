@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { getAllBlogPostsAdmin } from "@/lib/queries";
 import Link from "next/link";
 import { Plus, Pencil, Eye, EyeOff, BookOpen } from "lucide-react";

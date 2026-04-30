@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { getAllHotelsAdmin } from "@/lib/queries";
 import Link from "next/link";
 import { Pencil, Link2, CheckCircle2, XCircle } from "lucide-react";

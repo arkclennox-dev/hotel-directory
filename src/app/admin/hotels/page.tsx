@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { getAllHotelsAdmin } from "@/lib/queries";
 import Link from "next/link";
 import { Plus, Pencil, MapPin, Star, Eye, EyeOff } from "lucide-react";
