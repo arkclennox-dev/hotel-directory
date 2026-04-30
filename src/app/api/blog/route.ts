@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from("blog_posts")
       .insert([{
+        id: crypto.randomUUID(),
         title: body.title,
         slug: body.slug,
         excerpt: body.excerpt || "",

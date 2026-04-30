@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from("hotels")
       .insert([{
+        id: crypto.randomUUID(),
         name: body.name,
         slug: body.slug,
         city_id: body.city_id || null,

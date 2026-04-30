@@ -4,29 +4,31 @@ import { getSupabase } from "@/lib/supabase";
 // Pemetaan nama kolom CSV/XLSX → field hotel di Supabase (case-insensitive, spasi/underscore diabaikan)
 const FIELD_ALIASES: Record<string, string[]> = {
   name:              ["name", "nama", "namahotel", "hotelname"],
-  slug:              ["slug", "urlslug", "url"],
-  city_id:           ["cityid", "kotaid", "idkota", "city_id"],
+  slug:              ["slug", "urlslug"],
+  city_id:           ["cityid", "kotaid", "idkota"],
+  city_name:         ["city", "cityname", "kota", "namakota"],
   short_description: ["shortdescription", "shortdesc", "deskripssingkat", "deskripsipendek"],
-  full_description:  ["fulldescription", "deskripsilengkap", "deskripsi", "description"],
+  full_description:  ["fulldescription", "deskripsilengkap"],
+  description:       ["description", "deskripsi"],
   address:           ["address", "alamat"],
   latitude:          ["latitude", "lat"],
   longitude:         ["longitude", "lng", "lon", "long"],
   star_rating:       ["starrating", "bintang", "stars", "star"],
   guest_rating:      ["guestrating", "ratingtamu", "rating"],
   review_count:      ["reviewcount", "julahumasan", "ulasan", "reviews"],
-  price_from:        ["pricefrom", "hargamulai", "hargadari", "hargamin", "pricefrom"],
+  price_from:        ["pricefrom", "hargamulai", "hargadari", "hargamin"],
   price_to:          ["priceto", "hargasampai", "hargamax", "hargamaksimal"],
   currency:          ["currency", "matauang"],
   property_type:     ["propertytype", "tipeproperti", "tipe", "type"],
-  check_in_time:     ["checkintime", "checkin", "checkin_time", "waktumasuk"],
-  check_out_time:    ["checkouttime", "checkout", "checkout_time", "waktukeluar"],
+  check_in_time:     ["checkintime", "checkin", "waktumasuk"],
+  check_out_time:    ["checkouttime", "checkout", "waktukeluar"],
   phone:             ["phone", "telepon", "notelepon", "nohp"],
-  website_url:       ["websiteurl", "website", "url_website"],
-  hero_image_url:    ["heroimageurl", "imageurl", "heroimage", "foto", "gambar", "image"],
+  website_url:       ["websiteurl", "website"],
+  hero_image_url:    ["heroimageurl", "imageurl", "heroimage", "featuredimageurl", "featuredimage", "foto", "gambar", "image"],
   is_featured:       ["isfeatured", "featured", "unggulan"],
-  is_published:      ["ispublished", "published", "status", "aktif"],
-  seo_title:         ["seotitle", "seo_title"],
-  seo_description:   ["seodescription", "seo_description"],
+  is_published:      ["ispublished", "status", "aktif"],
+  seo_title:         ["seotitle"],
+  seo_description:   ["seodescription"],
 };
 
 function normalizeKey(str: string): string {
@@ -59,7 +61,7 @@ function parseBool(val: unknown): boolean {
   if (typeof val === "number") return val !== 0;
   if (typeof val === "string") {
     const v = val.toLowerCase().trim();
-    return v === "true" || v === "1" || v === "yes" || v === "ya" || v === "aktif";
+    return v === "true" || v === "1" || v === "yes" || v === "ya" || v === "aktif" || v === "published";
   }
   return true;
 }
@@ -94,6 +96,18 @@ export async function POST(request: NextRequest) {
     const { data: existing } = await supabase.from("hotels").select("id, slug");
     const existingMap = new Map((existing || []).map((h) => [h.slug, h.id]));
 
+    // Preload cities untuk resolusi city_name → city_id
+    const hasCityName = Object.values(colMap).includes("city_name");
+    const cityBySlug = new Map<string, string>();
+    const cityByName = new Map<string, string>();
+    if (hasCityName) {
+      const { data: cities } = await supabase.from("cities").select("id, name, slug");
+      for (const c of cities || []) {
+        cityBySlug.set(c.slug.toLowerCase(), c.id);
+        cityByName.set(c.name.toLowerCase(), c.id);
+      }
+    }
+
     const toUpsert: Record<string, unknown>[] = [];
     const skipped: string[] = [];
 
@@ -114,6 +128,18 @@ export async function POST(request: NextRequest) {
       }
 
       const name = String(mapped.name).trim();
+
+      // Resolusi city_name → city_id
+      if (!mapped.city_id && mapped.city_name) {
+        const key = String(mapped.city_name).toLowerCase().trim();
+        mapped.city_id = cityBySlug.get(key) ?? cityByName.get(key) ?? null;
+      }
+
+      // Gunakan description sebagai fallback untuk short/full jika tidak ada
+      if (mapped.description) {
+        if (!mapped.short_description) mapped.short_description = mapped.description;
+        if (!mapped.full_description) mapped.full_description = mapped.description;
+      }
 
       const slug = mapped.slug ? String(mapped.slug) : slugify(name);
       // Pakai ID lama jika slug sudah ada (update), atau generate UUID baru (insert)
