@@ -90,9 +90,9 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabase();
 
-    // Ambil semua slug yang sudah ada untuk deteksi duplikat
+    // Ambil semua hotel yang sudah ada untuk deteksi duplikat
     const { data: existing } = await supabase.from("hotels").select("id, slug");
-    const existingSlugs = new Set((existing || []).map((h) => h.slug));
+    const existingMap = new Map((existing || []).map((h) => [h.slug, h.id]));
 
     const toUpsert: Record<string, unknown>[] = [];
     const skipped: string[] = [];
@@ -115,15 +115,16 @@ export async function POST(request: NextRequest) {
 
       const name = String(mapped.name).trim();
 
-      // Auto-generate slug jika tidak ada
-      if (!mapped.slug) {
-        mapped.slug = slugify(name);
-      }
+      const slug = mapped.slug ? String(mapped.slug) : slugify(name);
+      // Pakai ID lama jika slug sudah ada (update), atau generate UUID baru (insert)
+      const existingId = existingMap.get(slug);
+      const id = existingId ?? (mapped.id ? String(mapped.id) : crypto.randomUUID());
 
       // Bangun record akhir — kolom tidak ada di CSV → null/default
       const hotel: Record<string, unknown> = {
+        id,
         name,
-        slug:              mapped.slug ?? null,
+        slug,
         city_id:           mapped.city_id ?? null,
         short_description: mapped.short_description ? String(mapped.short_description) : "",
         full_description:  mapped.full_description ? String(mapped.full_description) : "",
@@ -150,7 +151,7 @@ export async function POST(request: NextRequest) {
       };
 
       // Tandai apakah ini insert baru atau update
-      (hotel as any)._isNew = !existingSlugs.has(String(hotel.slug));
+      (hotel as any)._isNew = !existingId;
 
       toUpsert.push(hotel);
     }
