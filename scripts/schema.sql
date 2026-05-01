@@ -104,3 +104,15 @@ CREATE TABLE IF NOT EXISTS public.blog_posts (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS public.affiliate_links (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+  hotel_id TEXT NOT NULL REFERENCES public.hotels(id) ON DELETE CASCADE,
+  provider TEXT NOT NULL,
+  affiliate_url TEXT NOT NULL,
+  deeplink_url TEXT DEFAULT '#',
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(hotel_id, provider)
+);

@@ -66,56 +66,62 @@ export async function getLandmarksByCity(cityId: string): Promise<Landmark[]> {
 // =====================================================================
 // HOTELS
 // =====================================================================
-function buildHotelSelect() {
-  return "*, city:cities(*), affiliate_links(*)";
-}
+// Listing select: no affiliate_links (table may not exist, and listings don't need it)
+const HOTEL_LIST_SELECT = "*, city:cities(*)";
+// Detail select: includes affiliate_links for booking buttons
+const HOTEL_DETAIL_SELECT = "*, city:cities(*), affiliate_links(*)";
 
 export async function getHotels(): Promise<Hotel[]> {
-  const { data } = await getSupabase()
+  const { data, error } = await getSupabase()
     .from("hotels")
-    .select(buildHotelSelect())
+    .select(HOTEL_LIST_SELECT)
     .eq("is_published", true)
     .order("review_count", { ascending: false });
+  if (error) console.error("[getHotels]", error.message);
   return (data as unknown || []) as Hotel[];
 }
 
 export async function getFeaturedHotels(): Promise<Hotel[]> {
-  const { data } = await getSupabase()
+  const { data, error } = await getSupabase()
     .from("hotels")
-    .select(buildHotelSelect())
+    .select(HOTEL_LIST_SELECT)
     .eq("is_published", true)
     .eq("is_featured", true)
     .order("review_count", { ascending: false });
+  if (error) console.error("[getFeaturedHotels]", error.message);
   return (data as unknown || []) as Hotel[];
 }
 
 export async function getHotelBySlug(slug: string): Promise<Hotel | undefined> {
-  const { data } = await getSupabase()
+  const { data, error } = await getSupabase()
     .from("hotels")
-    .select(buildHotelSelect())
+    .select(HOTEL_DETAIL_SELECT)
     .eq("slug", slug)
     .single();
+  if (error) console.error("[getHotelBySlug]", error.message);
   return data as unknown as Hotel | undefined;
 }
 
 export async function getHotelsByCity(cityId: string): Promise<Hotel[]> {
-  const { data } = await getSupabase()
+  const { data, error } = await getSupabase()
     .from("hotels")
-    .select(buildHotelSelect())
+    .select(HOTEL_LIST_SELECT)
     .eq("city_id", cityId)
     .eq("is_published", true)
     .order("guest_rating", { ascending: false });
+  if (error) console.error("[getHotelsByCity]", error.message);
   return (data as unknown || []) as Hotel[];
 }
 
 export async function getSimilarHotels(hotel: Hotel, limit = 4): Promise<Hotel[]> {
-  const { data } = await getSupabase()
+  const { data, error } = await getSupabase()
     .from("hotels")
-    .select(buildHotelSelect())
+    .select(HOTEL_LIST_SELECT)
     .eq("city_id", hotel.city_id)
     .eq("is_published", true)
     .neq("id", hotel.id)
     .limit(limit);
+  if (error) console.error("[getSimilarHotels]", error.message);
   return (data as unknown || []) as Hotel[];
 }
 
@@ -123,7 +129,7 @@ export async function searchHotels(filters: SearchFilters): Promise<PaginatedRes
   const supabase = getSupabase();
   let query = supabase
     .from("hotels")
-    .select(buildHotelSelect(), { count: "exact" })
+    .select(HOTEL_LIST_SELECT, { count: "exact" })
     .eq("is_published", true);
 
   if (filters.query) {
@@ -221,19 +227,21 @@ export async function getSiteStats() {
 // ADMIN
 // =====================================================================
 export async function getAllHotelsAdmin(): Promise<any[]> {
-  const { data } = await getSupabase()
+  const { data, error } = await getSupabase()
     .from("hotels")
-    .select("*, city:cities(name, slug), affiliate_links(*)")
+    .select("*, city:cities(name, slug)")
     .order("created_at", { ascending: false });
+  if (error) console.error("[getAllHotelsAdmin]", error.message);
   return data || [];
 }
 
 export async function getHotelByIdAdmin(id: string): Promise<any | undefined> {
-  const { data } = await getSupabase()
+  const { data, error } = await getSupabase()
     .from("hotels")
-    .select("*, city:cities(*), affiliate_links(*)")
+    .select(HOTEL_DETAIL_SELECT)
     .eq("id", id)
     .single();
+  if (error) console.error("[getHotelByIdAdmin]", error.message);
   return data;
 }
 
