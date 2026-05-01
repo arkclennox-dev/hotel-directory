@@ -121,8 +121,15 @@ function HotelFormContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (res.ok) router.push("/admin/hotels");
-      else {
+      if (res.ok) {
+        if (isEdit) {
+          router.push("/admin/hotels");
+        } else {
+          const created = await res.json();
+          // Redirect ke edit mode agar bisa langsung tambah foto galeri
+          router.push(`/admin/hotels/form?id=${created.id}`);
+        }
+      } else {
         const err = await res.json();
         alert("Gagal: " + (err.error || "Unknown error"));
       }

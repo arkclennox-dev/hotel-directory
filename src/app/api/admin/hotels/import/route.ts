@@ -29,6 +29,7 @@ const FIELD_ALIASES: Record<string, string[]> = {
   is_published:      ["ispublished", "status", "aktif"],
   seo_title:         ["seotitle"],
   seo_description:   ["seodescription"],
+  gallery_images:    ["galleryimages", "gallery_images", "galleryphotos", "galleryphoto", "photos", "fotos", "gambaradditional"],
 };
 
 function normalizeKey(str: string): string {
@@ -195,8 +196,8 @@ export async function POST(request: NextRequest) {
     const newCount = toUpsert.filter((h) => (h as any)._isNew).length;
     const updateCount = toUpsert.length - newCount;
 
-    // Hapus flag internal sebelum upsert
-    const cleanRows = toUpsert.map(({ _isNew, ...rest }) => rest);
+    // Hapus flag internal dan gallery_images (bukan kolom hotels) sebelum upsert
+    const cleanRows = toUpsert.map(({ _isNew, gallery_images, ...rest }) => rest);
 
     const { error } = await supabase
       .from("hotels")
@@ -206,6 +207,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Insert gallery images from pipe-separated gallery_images column
+    let galleryInserted = 0;
+    const galleryRows: Record<string, unknown>[] = [];
+    for (const hotel of toUpsert) {
+      const raw = (hotel as any).gallery_images;
+      if (!raw) continue;
+      const urls = String(raw).split("|").map((u) => u.trim()).filter(Boolean).slice(0, 20);
+      if (urls.length === 0) continue;
+      urls.forEach((url, i) => {
+        galleryRows.push({
+          id: crypto.randomUUID(),
+          hotel_id: hotel.id,
+          image_url: url,
+          alt_text: "",
+          sort_order: i + 1,
+        });
+      });
+    }
+    if (galleryRows.length > 0) {
+      // Delete existing images for hotels being updated, then re-insert
+      const hotelIds = [...new Set(galleryRows.map((r) => r.hotel_id as string))];
+      await supabase.from("hotel_images").delete().in("hotel_id", hotelIds);
+      const { error: imgError } = await supabase.from("hotel_images").insert(galleryRows);
+      if (!imgError) galleryInserted = galleryRows.length;
+    }
+
     return NextResponse.json({
       success: true,
       inserted: newCount,
@@ -213,6 +240,7 @@ export async function POST(request: NextRequest) {
       skipped: skipped.length,
       skipped_rows: skipped,
       columns_detected: Object.values(colMap),
+      gallery_images_inserted: galleryInserted,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
