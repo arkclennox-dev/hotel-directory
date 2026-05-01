@@ -79,8 +79,18 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-    if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+    const ids = searchParams.get("ids"); // bulk: comma-separated
     const supabase = getSupabase();
+
+    if (ids) {
+      const idList = ids.split(",").map((s) => s.trim()).filter(Boolean);
+      if (idList.length === 0) return NextResponse.json({ error: "ids required" }, { status: 400 });
+      const { error } = await supabase.from("hotels").delete().in("id", idList);
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ success: true, deleted: idList.length });
+    }
+
+    if (!id) return NextResponse.json({ error: "id or ids required" }, { status: 400 });
     const { error } = await supabase.from("hotels").delete().eq("id", id);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ success: true });
