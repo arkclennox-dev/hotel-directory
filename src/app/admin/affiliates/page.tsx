@@ -1,13 +1,13 @@
 export const dynamic = 'force-dynamic';
 
-import { getAllHotelsAdmin } from "@/lib/queries";
+import { getAllHotelsWithAffiliatesAdmin } from "@/lib/queries";
 import Link from "next/link";
 import { Pencil, Link2, CheckCircle2, XCircle } from "lucide-react";
 
 const providers = ["traveloka", "tiketcom", "agoda"] as const;
 
 export default async function AdminAffiliatesPage() {
-  const hotels = await getAllHotelsAdmin();
+  const hotels = await getAllHotelsWithAffiliatesAdmin();
 
   return (
     <div className="space-y-6">

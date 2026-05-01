@@ -105,6 +105,15 @@ CREATE TABLE IF NOT EXISTS public.blog_posts (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS public.hotel_images (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+  hotel_id TEXT NOT NULL REFERENCES public.hotels(id) ON DELETE CASCADE,
+  image_url TEXT NOT NULL,
+  alt_text TEXT DEFAULT '',
+  sort_order INTEGER DEFAULT 1,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS public.affiliate_links (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
   hotel_id TEXT NOT NULL REFERENCES public.hotels(id) ON DELETE CASCADE,

@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, ImagePlus, Trash2, GripVertical } from "lucide-react";
 import Link from "next/link";
 
 const PROPERTY_TYPES = ["Hotel", "Resort", "Villa", "Hostel", "Guest House", "Apartemen", "Kost"];
@@ -26,13 +26,21 @@ function HotelFormContent() {
   const [fetching, setFetching] = useState(isEdit);
   const [form, setForm] = useState(EMPTY_FORM);
 
+  // Image management state
+  const [images, setImages] = useState<{ id: string; image_url: string; alt_text: string; sort_order: number }[]>([]);
+  const [newImgUrl, setNewImgUrl] = useState("");
+  const [newImgAlt, setNewImgAlt] = useState("");
+  const [imgLoading, setImgLoading] = useState(false);
+
   // Load existing data saat edit
   useEffect(() => {
     if (!editId) return;
     setFetching(true);
-    fetch(`/api/hotels?id=${editId}`)
-      .then((r) => r.json())
-      .then((data) => {
+    Promise.all([
+      fetch(`/api/hotels?id=${editId}`).then((r) => r.json()),
+      fetch(`/api/hotel-images?hotel_id=${editId}`).then((r) => r.json()),
+    ])
+      .then(([data, imgs]) => {
         if (data && !data.error) {
           setForm({
             name: data.name || "",
@@ -54,10 +62,40 @@ function HotelFormContent() {
             is_featured: data.is_featured ?? false,
           });
         }
+        if (Array.isArray(imgs)) setImages(imgs);
       })
       .catch(console.error)
       .finally(() => setFetching(false));
   }, [editId]);
+
+  const handleAddImage = async () => {
+    if (!newImgUrl.trim() || !editId) return;
+    setImgLoading(true);
+    try {
+      const res = await fetch("/api/hotel-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hotel_id: editId, image_url: newImgUrl.trim(), alt_text: newImgAlt.trim() }),
+      });
+      if (res.ok) {
+        const img = await res.json();
+        setImages((prev) => [...prev, img]);
+        setNewImgUrl("");
+        setNewImgAlt("");
+      } else {
+        const err = await res.json();
+        alert("Gagal: " + (err.error || "Unknown error"));
+      }
+    } catch (err) { alert("Error: " + err); }
+    finally { setImgLoading(false); }
+  };
+
+  const handleDeleteImage = async (id: string) => {
+    if (!confirm("Hapus foto ini?")) return;
+    const res = await fetch(`/api/hotel-images?id=${id}`, { method: "DELETE" });
+    if (res.ok) setImages((prev) => prev.filter((img) => img.id !== id));
+    else alert("Gagal menghapus foto.");
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -217,6 +255,80 @@ function HotelFormContent() {
             <span className="text-sm text-gray-300">Featured (halaman utama)</span>
           </label>
         </div>
+
+        {/* Foto Tambahan — only shown when editing */}
+        {isEdit && (
+          <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-4">
+            <h2 className="text-sm font-semibold text-white border-b border-gray-800 pb-3">
+              Foto Tambahan ({images.length})
+            </h2>
+
+            {/* Existing images */}
+            {images.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {images.map((img, i) => (
+                  <div key={img.id} className="flex gap-3 items-start p-3 rounded-lg border border-gray-700 bg-gray-800">
+                    <img
+                      src={img.image_url}
+                      alt={img.alt_text || `Foto ${i + 1}`}
+                      className="w-20 h-16 object-cover rounded-md shrink-0 border border-gray-600"
+                      onError={(e) => { (e.target as HTMLImageElement).src = ""; }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-gray-300 truncate">{img.image_url}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{img.alt_text || "—"}</p>
+                      <p className="text-xs text-gray-600 mt-0.5">Urutan: {img.sort_order}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteImage(img.id)}
+                      className="p-1.5 rounded text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {images.length === 0 && (
+              <p className="text-sm text-gray-500">Belum ada foto tambahan.</p>
+            )}
+
+            {/* Add new image */}
+            <div className="rounded-lg border border-dashed border-gray-700 p-4 space-y-3">
+              <p className="text-xs font-medium text-gray-400 flex items-center gap-2">
+                <ImagePlus className="w-4 h-4" /> Tambah Foto Baru
+              </p>
+              <input
+                type="url"
+                value={newImgUrl}
+                onChange={(e) => setNewImgUrl(e.target.value)}
+                placeholder="URL foto (https://...)"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+              />
+              <input
+                type="text"
+                value={newImgAlt}
+                onChange={(e) => setNewImgAlt(e.target.value)}
+                placeholder="Alt text / keterangan foto"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+              />
+              {newImgUrl && (
+                <img src={newImgUrl} alt="preview" className="h-24 w-auto rounded-lg object-cover border border-gray-700" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              )}
+              <button
+                type="button"
+                onClick={handleAddImage}
+                disabled={imgLoading || !newImgUrl.trim()}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                {imgLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
+                Tambah Foto
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-3">
           <button type="submit" disabled={loading}
