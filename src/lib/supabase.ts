@@ -5,6 +5,10 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 let _supabase: SupabaseClient | null = null;
 let _supabaseClient: SupabaseClient | null = null;
 
+const noStoreOptions = {
+  global: { fetch: (url: RequestInfo | URL, options?: RequestInit) => fetch(url, { ...options, cache: "no-store" }) },
+};
+
 export function getSupabase(): SupabaseClient {
   if (!_supabase) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -14,7 +18,7 @@ export function getSupabase(): SupabaseClient {
         "Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required."
       );
     }
-    _supabase = createClient(url, key);
+    _supabase = createClient(url, key, noStoreOptions);
   }
   return _supabase;
 }
@@ -28,7 +32,7 @@ export function getSupabaseClient(): SupabaseClient {
         "Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required."
       );
     }
-    _supabaseClient = createClient(url, key);
+    _supabaseClient = createClient(url, key, noStoreOptions);
   }
   return _supabaseClient;
 }
