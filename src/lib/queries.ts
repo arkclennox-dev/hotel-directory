@@ -4,6 +4,7 @@
  * Jalankan /api/seed?secret=... sekali untuk mengisi database dari JSON lokal.
  */
 
+import { unstable_noStore as noStore } from "next/cache";
 import { getSupabase } from "@/lib/supabase";
 import { Hotel, City, Category, Landmark, BlogPost, SearchFilters, PaginatedResult } from "@/lib/types";
 
@@ -236,6 +237,7 @@ export async function getSiteStats() {
 // ADMIN
 // =====================================================================
 export async function getAllHotelsAdmin(): Promise<any[]> {
+  noStore();
   const { data, error } = await getSupabase()
     .from("hotels")
     .select("*, city:cities(name, slug)")
@@ -263,6 +265,7 @@ export async function getHotelByIdAdmin(id: string): Promise<any | undefined> {
 }
 
 export async function getAllBlogPostsAdmin(): Promise<BlogPost[]> {
+  noStore();
   const { data } = await getSupabase()
     .from("blog_posts")
     .select("*")
@@ -280,6 +283,7 @@ export async function getBlogPostByIdAdmin(id: string): Promise<BlogPost | undef
 }
 
 export async function getAllHotelsWithAffiliatesAdmin(): Promise<any[]> {
+  noStore();
   const supabase = getSupabase();
   const { data: hotels, error } = await supabase
     .from("hotels")
@@ -298,6 +302,7 @@ export async function getAllHotelsWithAffiliatesAdmin(): Promise<any[]> {
 }
 
 export async function getAllCategoriesAdmin(): Promise<any[]> {
+  noStore();
   const { data, error } = await getSupabase()
     .from("categories")
     .select("*")
@@ -308,6 +313,7 @@ export async function getAllCategoriesAdmin(): Promise<any[]> {
 }
 
 export async function getAllLandmarksAdmin(): Promise<any[]> {
+  noStore();
   const { data, error } = await getSupabase()
     .from("landmarks")
     .select("*, city:cities(name, slug)")
@@ -317,6 +323,7 @@ export async function getAllLandmarksAdmin(): Promise<any[]> {
 }
 
 export async function getAdminStats() {
+  noStore();
   const supabase = getSupabase();
   const [{ count: hotels }, { count: cities }, { count: blog }, { count: affiliate }] = await Promise.all([
     supabase.from("hotels").select("*", { count: "exact", head: true }),
