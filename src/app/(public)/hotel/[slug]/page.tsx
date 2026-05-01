@@ -37,6 +37,7 @@ const defaultFacilities = [
   "WiFi Gratis", "AC", "Restoran", "Resepsionis 24 Jam", "Parkir Gratis", "Kolam Renang",
 ];
 
+export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
@@ -155,25 +156,20 @@ export default async function HotelDetailPage({
               />
             </div>
             <div className="hidden md:grid grid-rows-2 gap-3">
-              {(hotel.images || []).slice(1, 3).map((img, i) => (
+              {(hotel.images || []).slice(0, 2).map((img, i) => (
                 <div key={i} className="overflow-hidden">
                   <img
                     src={img.image_url}
-                    alt={img.alt_text}
+                    alt={img.alt_text || hotel.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
               ))}
-              {(!hotel.images || hotel.images.length < 3) && (
-                <>
-                  <div className="bg-surface flex items-center justify-center">
-                    <p className="text-sm text-muted-foreground">Foto tambahan</p>
-                  </div>
-                  <div className="bg-surface flex items-center justify-center">
-                    <p className="text-sm text-muted-foreground">Foto tambahan</p>
-                  </div>
-                </>
-              )}
+              {Array.from({ length: Math.max(0, 2 - (hotel.images?.length || 0)) }).map((_, i) => (
+                <div key={`placeholder-${i}`} className="bg-surface flex items-center justify-center">
+                  <p className="text-sm text-muted-foreground">Foto tambahan</p>
+                </div>
+              ))}
             </div>
           </div>
 
