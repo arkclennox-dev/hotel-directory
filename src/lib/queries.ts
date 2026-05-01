@@ -279,6 +279,25 @@ export async function getBlogPostByIdAdmin(id: string): Promise<BlogPost | undef
   return data as unknown as BlogPost | undefined;
 }
 
+export async function getAllCategoriesAdmin(): Promise<any[]> {
+  const { data, error } = await getSupabase()
+    .from("categories")
+    .select("*")
+    .order("type")
+    .order("name");
+  if (error) console.error("[getAllCategoriesAdmin]", error.message);
+  return data || [];
+}
+
+export async function getAllLandmarksAdmin(): Promise<any[]> {
+  const { data, error } = await getSupabase()
+    .from("landmarks")
+    .select("*, city:cities(name, slug)")
+    .order("name");
+  if (error) console.error("[getAllLandmarksAdmin]", error.message);
+  return data || [];
+}
+
 export async function getAdminStats() {
   const supabase = getSupabase();
   const [{ count: hotels }, { count: cities }, { count: blog }, { count: affiliate }] = await Promise.all([

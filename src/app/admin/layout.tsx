@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 import {
-  LayoutDashboard, Hotel, BookOpen, Link2, LogOut, ChevronRight,
+  LayoutDashboard, Hotel, BookOpen, Link2, LogOut, ChevronRight, Tag, MapPin,
 } from "lucide-react";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
   { href: "/admin/hotels", label: "Hotels", icon: <Hotel className="w-5 h-5" /> },
+  { href: "/admin/categories", label: "Kategori", icon: <Tag className="w-5 h-5" /> },
+  { href: "/admin/landmarks", label: "Landmarks", icon: <MapPin className="w-5 h-5" /> },
   { href: "/admin/blog", label: "Blog Posts", icon: <BookOpen className="w-5 h-5" /> },
   { href: "/admin/affiliates", label: "Affiliate Links", icon: <Link2 className="w-5 h-5" /> },
 ];
