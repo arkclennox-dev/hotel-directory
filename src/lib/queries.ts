@@ -93,13 +93,22 @@ export async function getFeaturedHotels(): Promise<Hotel[]> {
 }
 
 export async function getHotelBySlug(slug: string): Promise<Hotel | undefined> {
-  const { data, error } = await getSupabase()
+  const supabase = getSupabase();
+  const { data, error } = await supabase
     .from("hotels")
-    .select(HOTEL_DETAIL_SELECT)
+    .select(HOTEL_LIST_SELECT)
     .eq("slug", slug)
     .single();
-  if (error) console.error("[getHotelBySlug]", error.message);
-  return data as unknown as Hotel | undefined;
+  if (error) { console.error("[getHotelBySlug]", error.message); return undefined; }
+  if (!data) return undefined;
+
+  // Affiliate links are optional — fetch separately so missing table doesn't break the page
+  const { data: links } = await supabase
+    .from("affiliate_links")
+    .select("*")
+    .eq("hotel_id", (data as any).id);
+
+  return { ...data, affiliate_links: links || [] } as unknown as Hotel;
 }
 
 export async function getHotelsByCity(cityId: string): Promise<Hotel[]> {
@@ -236,13 +245,21 @@ export async function getAllHotelsAdmin(): Promise<any[]> {
 }
 
 export async function getHotelByIdAdmin(id: string): Promise<any | undefined> {
-  const { data, error } = await getSupabase()
+  const supabase = getSupabase();
+  const { data, error } = await supabase
     .from("hotels")
-    .select(HOTEL_DETAIL_SELECT)
+    .select("*, city:cities(*)")
     .eq("id", id)
     .single();
-  if (error) console.error("[getHotelByIdAdmin]", error.message);
-  return data;
+  if (error) { console.error("[getHotelByIdAdmin]", error.message); return undefined; }
+  if (!data) return undefined;
+
+  const { data: links } = await supabase
+    .from("affiliate_links")
+    .select("*")
+    .eq("hotel_id", id);
+
+  return { ...data, affiliate_links: links || [] };
 }
 
 export async function getAllBlogPostsAdmin(): Promise<BlogPost[]> {
