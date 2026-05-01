@@ -227,7 +227,7 @@ export async function POST(request: NextRequest) {
     }
     if (galleryRows.length > 0) {
       // Delete existing images for hotels being updated, then re-insert
-      const hotelIds = [...new Set(galleryRows.map((r) => r.hotel_id as string))];
+      const hotelIds = Array.from(new Set(galleryRows.map((r) => r.hotel_id as string)));
       await supabase.from("hotel_images").delete().in("hotel_id", hotelIds);
       const { error: imgError } = await supabase.from("hotel_images").insert(galleryRows);
       if (!imgError) galleryInserted = galleryRows.length;
