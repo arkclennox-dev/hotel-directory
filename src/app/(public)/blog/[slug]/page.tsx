@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
+import Image from "next/image";
 import { getBlogPostBySlug, getBlogPosts, getRecentBlogPosts } from "@/lib/queries";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import Link from "next/link";
@@ -71,8 +72,8 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
                     href={`/blog/${rp.slug}`}
                     className="glass-card-hover group overflow-hidden flex"
                   >
-                    <div className="w-32 h-24 shrink-0 overflow-hidden">
-                      <img src={rp.featured_image_url} alt={rp.title} className="w-full h-full object-cover" />
+                    <div className="w-32 h-24 shrink-0 overflow-hidden relative">
+                      <Image src={rp.featured_image_url || ""} alt={rp.title} fill sizes="128px" className="object-cover" />
                     </div>
                     <div className="p-3 flex flex-col justify-center">
                       <h4 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface HotelImage {
@@ -64,14 +65,14 @@ export default function HotelGallery({ heroImage, hotelName, images }: Props) {
       {/* Gallery grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-8 rounded-2xl overflow-hidden h-[300px] md:h-[420px]">
         {/* Hero */}
-        <div
-          className="md:col-span-2 h-full cursor-pointer"
-          onClick={() => openLightbox(0)}
-        >
-          <img
+        <div className="md:col-span-2 h-full cursor-pointer relative" onClick={() => openLightbox(0)}>
+          <Image
             src={heroImage}
             alt={hotelName}
-            className="w-full h-full object-cover hover:brightness-90 transition-all duration-300"
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 66vw"
+            className="object-cover hover:brightness-90 transition-all duration-300"
           />
         </div>
 
@@ -79,34 +80,29 @@ export default function HotelGallery({ heroImage, hotelName, images }: Props) {
         {images.length > 0 && (
           <div className="hidden md:grid grid-rows-2 gap-2 h-full">
             {/* First thumbnail */}
-            <div
-              className="overflow-hidden h-full cursor-pointer"
-              onClick={() => openLightbox(1)}
-            >
-              <img
+            <div className="overflow-hidden h-full cursor-pointer relative" onClick={() => openLightbox(1)}>
+              <Image
                 src={images[0].image_url}
                 alt={images[0].alt_text || hotelName}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                fill
+                sizes="33vw"
+                className="object-cover hover:scale-105 transition-transform duration-300"
               />
             </div>
 
             {/* Second thumbnail — with +N overlay if more images exist */}
             {images.length >= 2 && (
-              <div
-                className="overflow-hidden h-full cursor-pointer relative"
-                onClick={() => openLightbox(2)}
-              >
-                <img
+              <div className="overflow-hidden h-full cursor-pointer relative" onClick={() => openLightbox(2)}>
+                <Image
                   src={images[1].image_url}
                   alt={images[1].alt_text || hotelName}
-                  className="w-full h-full object-cover transition-transform duration-300"
-                  style={{ filter: extraCount > 0 ? "brightness(0.5)" : undefined }}
+                  fill
+                  sizes="33vw"
+                  className={`object-cover transition-transform duration-300 ${extraCount > 0 ? "brightness-50" : ""}`}
                 />
                 {extraCount > 0 && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-white text-3xl font-bold drop-shadow-lg">
-                      +{extraCount}
-                    </span>
+                    <span className="text-white text-3xl font-bold drop-shadow-lg">+{extraCount}</span>
                   </div>
                 )}
               </div>
@@ -178,7 +174,7 @@ export default function HotelGallery({ heroImage, hotelName, images }: Props) {
                   i === activeIndex ? "border-white scale-105" : "border-transparent opacity-50 hover:opacity-80"
                 }`}
               >
-                <img src={img.image_url} alt="" className="w-full h-full object-cover" />
+                <Image src={img.image_url} alt="" fill sizes="64px" className="object-cover" />
               </button>
             ))}
           </div>

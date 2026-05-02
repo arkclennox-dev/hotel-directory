@@ -94,12 +94,16 @@ export default async function HotelDetailPage({
     },
   ];
 
+  const siteUrl = "https://lalioma.id";
+
   // JSON-LD schema
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Hotel",
     name: hotel.name,
-    description: hotel.short_description,
+    description: hotel.short_description || hotel.full_description,
+    url: `${siteUrl}/hotel/${hotel.slug}`,
+    image: [hotel.hero_image_url, ...(hotel.images || []).map((img: any) => img.image_url)].filter(Boolean),
     address: {
       "@type": "PostalAddress",
       streetAddress: hotel.address,
@@ -107,26 +111,28 @@ export default async function HotelDetailPage({
       addressRegion: city?.province,
       addressCountry: "ID",
     },
-    geo: {
+    geo: hotel.latitude && hotel.longitude ? {
       "@type": "GeoCoordinates",
       latitude: hotel.latitude,
       longitude: hotel.longitude,
-    },
+    } : undefined,
     starRating: {
       "@type": "Rating",
       ratingValue: hotel.star_rating,
+      bestRating: 5,
     },
-    aggregateRating: {
+    aggregateRating: hotel.review_count > 0 ? {
       "@type": "AggregateRating",
       ratingValue: hotel.guest_rating,
       reviewCount: hotel.review_count,
       bestRating: 10,
-    },
-    priceRange: `${formatPrice(hotel.price_from)} - ${formatPrice(hotel.price_to)}`,
-    image: hotel.hero_image_url,
-    telephone: hotel.phone,
+      worstRating: 1,
+    } : undefined,
+    priceRange: hotel.price_from > 0 ? `${formatPrice(hotel.price_from)} - ${formatPrice(hotel.price_to)}` : undefined,
+    telephone: hotel.phone || undefined,
     checkinTime: hotel.check_in_time,
     checkoutTime: hotel.check_out_time,
+    ...(hotel.website_url ? { sameAs: hotel.website_url } : {}),
   };
 
   return (

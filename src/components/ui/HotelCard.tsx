@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Star, MapPin } from "lucide-react";
 import { Hotel } from "@/lib/types";
 import { formatPrice, getRatingLabel, cn } from "@/lib/utils";
@@ -16,10 +17,12 @@ export default function HotelCard({ hotel, className }: HotelCardProps) {
     >
       {/* Image */}
       <div className="relative h-48 overflow-hidden">
-        <img
-          src={hotel.hero_image_url}
+        <Image
+          src={hotel.hero_image_url || "/placeholder-hotel.jpg"}
           alt={hotel.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
