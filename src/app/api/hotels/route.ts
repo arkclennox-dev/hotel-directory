@@ -75,6 +75,26 @@ export async function PUT(request: NextRequest) {
   }
 }
 
+export async function PATCH(request: NextRequest) {
+  try {
+    const { ids, is_published, is_featured, city_id, property_type } = await request.json();
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: "ids required" }, { status: 400 });
+    }
+    const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (is_published !== undefined) updates.is_published = is_published;
+    if (is_featured !== undefined) updates.is_featured = is_featured;
+    if (city_id !== undefined) updates.city_id = city_id;
+    if (property_type !== undefined) updates.property_type = property_type;
+
+    const { error } = await getSupabase().from("hotels").update(updates).in("id", ids);
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ success: true, updated: ids.length });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

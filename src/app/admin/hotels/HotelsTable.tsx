@@ -23,8 +23,9 @@ interface Hotel {
 export default function HotelsTable({ hotels }: { hotels: Hotel[] }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkEditing, setBulkEditing] = useState(false);
   const [query, setQuery] = useState("");
 
   const filtered = query.trim()
@@ -65,18 +66,27 @@ export default function HotelsTable({ hotels }: { hotels: Hotel[] }) {
     try {
       const ids = Array.from(selected).join(",");
       const res = await fetch(`/api/hotels?ids=${encodeURIComponent(ids)}`, { method: "DELETE" });
-      if (!res.ok) {
-        const err = await res.json();
-        alert("Gagal: " + (err.error || "Unknown error"));
-        return;
-      }
+      if (!res.ok) { const err = await res.json(); alert("Gagal: " + (err.error || "Unknown error")); return; }
       setSelected(new Set());
       startTransition(() => router.refresh());
-    } catch (err) {
-      alert("Error: " + err);
-    } finally {
-      setBulkDeleting(false);
-    }
+    } catch (err) { alert("Error: " + err); }
+    finally { setBulkDeleting(false); }
+  };
+
+  const handleBulkEdit = async (updates: Record<string, unknown>) => {
+    if (selected.size === 0) return;
+    setBulkEditing(true);
+    try {
+      const res = await fetch("/api/hotels", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selected), ...updates }),
+      });
+      if (!res.ok) { const err = await res.json(); alert("Gagal: " + (err.error || "Unknown error")); return; }
+      setSelected(new Set());
+      startTransition(() => router.refresh());
+    } catch (err) { alert("Error: " + err); }
+    finally { setBulkEditing(false); }
   };
 
   return (
@@ -95,16 +105,63 @@ export default function HotelsTable({ hotels }: { hotels: Hotel[] }) {
 
       {/* Bulk action toolbar */}
       {selected.size > 0 && (
-        <div className="flex items-center justify-between px-5 py-3 bg-blue-600/10 border border-blue-500/30 rounded-xl mb-2">
-          <span className="text-sm text-blue-400 font-medium">{selected.size} hotel dipilih</span>
-          <button
-            onClick={handleBulkDelete}
-            disabled={bulkDeleting}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            {bulkDeleting ? "Menghapus..." : `Hapus ${selected.size} Hotel`}
-          </button>
+        <div className="rounded-xl border border-blue-500/30 bg-blue-600/10 p-4 space-y-3 mb-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-blue-300">{selected.size} hotel dipilih</span>
+            <button onClick={() => setSelected(new Set())} className="text-xs text-gray-400 hover:text-white transition-colors">Batalkan pilihan</button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {/* Publish / Unpublish */}
+            <button
+              onClick={() => handleBulkEdit({ is_published: true })}
+              disabled={bulkEditing}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              Publish
+            </button>
+            <button
+              onClick={() => handleBulkEdit({ is_published: false })}
+              disabled={bulkEditing}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              <EyeOff className="w-3.5 h-3.5" />
+              Unpublish
+            </button>
+
+            {/* Featured / Unfeatured */}
+            <button
+              onClick={() => handleBulkEdit({ is_featured: true })}
+              disabled={bulkEditing}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-700 hover:bg-amber-600 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              <Star className="w-3.5 h-3.5 fill-white" />
+              Jadikan Featured
+            </button>
+            <button
+              onClick={() => handleBulkEdit({ is_featured: false })}
+              disabled={bulkEditing}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              <Star className="w-3.5 h-3.5" />
+              Hapus Featured
+            </button>
+
+            {/* Divider */}
+            <div className="w-px bg-gray-700 self-stretch mx-1" />
+
+            {/* Delete */}
+            <button
+              onClick={handleBulkDelete}
+              disabled={bulkDeleting}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-red-700 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {bulkDeleting ? "Menghapus..." : `Hapus ${selected.size} Hotel`}
+            </button>
+          </div>
+          {bulkEditing && <p className="text-xs text-blue-400">Menyimpan perubahan...</p>}
         </div>
       )}
 
