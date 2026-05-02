@@ -147,30 +147,29 @@ export default async function HotelDetailPage({
           />
 
           {/* Image gallery */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8 rounded-xl overflow-hidden">
-            <div className="md:col-span-2 aspect-[16/9] md:aspect-auto md:h-[400px]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-8 rounded-2xl overflow-hidden h-[300px] md:h-[420px]">
+            {/* Hero image */}
+            <div className="md:col-span-2 h-full">
               <img
                 src={hotel.hero_image_url}
                 alt={hotel.name}
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="hidden md:grid grid-rows-2 gap-3">
-              {(hotel.images || []).slice(0, 2).map((img, i) => (
-                <div key={i} className="overflow-hidden">
-                  <img
-                    src={img.image_url}
-                    alt={img.alt_text || hotel.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-              {Array.from({ length: Math.max(0, 2 - (hotel.images?.length || 0)) }).map((_, i) => (
-                <div key={`placeholder-${i}`} className="bg-surface flex items-center justify-center">
-                  <p className="text-sm text-muted-foreground">Foto tambahan</p>
-                </div>
-              ))}
-            </div>
+            {/* Thumbnails — only render if there are gallery images */}
+            {(hotel.images?.length ?? 0) > 0 && (
+              <div className="hidden md:grid grid-rows-2 gap-2 h-full">
+                {(hotel.images || []).slice(0, 2).map((img, i) => (
+                  <div key={i} className="overflow-hidden h-full">
+                    <img
+                      src={img.image_url}
+                      alt={img.alt_text || hotel.name}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -238,18 +237,34 @@ export default async function HotelDetailPage({
                 </div>
               </div>
 
-              {/* Map placeholder */}
+              {/* Map */}
               <div className="glass-card p-6">
                 <h2 className="text-lg font-semibold text-foreground mb-3">Lokasi</h2>
-                <div className="aspect-[16/9] rounded-lg bg-surface border border-surface-border flex items-center justify-center">
-                  <div className="text-center">
-                    <MapPin className="w-8 h-8 text-primary mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">{hotel.address}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {hotel.latitude}, {hotel.longitude}
-                    </p>
+                {hotel.latitude && hotel.longitude && hotel.latitude !== 0 && hotel.longitude !== 0 ? (
+                  <div className="aspect-[16/9] rounded-xl overflow-hidden border border-surface-border">
+                    <iframe
+                      src={`https://maps.google.com/maps?q=${hotel.latitude},${hotel.longitude}&hl=id&z=15&output=embed`}
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      title={`Lokasi ${hotel.name}`}
+                    />
                   </div>
-                </div>
+                ) : (
+                  <div className="aspect-[16/9] rounded-xl bg-surface border border-surface-border flex items-center justify-center">
+                    <div className="text-center">
+                      <MapPin className="w-8 h-8 text-primary mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">{hotel.address}</p>
+                    </div>
+                  </div>
+                )}
+                <p className="text-sm text-muted-foreground mt-3 flex items-start gap-1.5">
+                  <MapPin className="w-4 h-4 shrink-0 mt-0.5 text-primary" />
+                  {hotel.address}
+                </p>
               </div>
 
               {/* FAQ */}
