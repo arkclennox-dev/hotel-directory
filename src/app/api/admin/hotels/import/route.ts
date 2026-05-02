@@ -179,6 +179,7 @@ export async function POST(request: NextRequest) {
 
       // Tandai apakah ini insert baru atau update
       (hotel as any)._isNew = !existingId;
+      if (mapped.gallery_images) (hotel as any).gallery_images = String(mapped.gallery_images);
 
       toUpsert.push(hotel);
     }
