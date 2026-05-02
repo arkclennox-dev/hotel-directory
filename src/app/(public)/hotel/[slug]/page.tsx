@@ -7,6 +7,7 @@ import {
   Flower2, Shirt, Droplets, Bath, Mountain, Baby, Presentation, Bus
 } from "lucide-react";
 import { getHotelBySlug, getSimilarHotels, getHotels } from "@/lib/queries";
+import HotelGallery from "./HotelGallery";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import HotelCard from "@/components/ui/HotelCard";
 import CTAButtonsAffiliate from "@/components/ui/CTAButtonsAffiliate";
@@ -146,31 +147,11 @@ export default async function HotelDetailPage({
             ]}
           />
 
-          {/* Image gallery */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-8 rounded-2xl overflow-hidden h-[300px] md:h-[420px]">
-            {/* Hero image */}
-            <div className="md:col-span-2 h-full">
-              <img
-                src={hotel.hero_image_url}
-                alt={hotel.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            {/* Thumbnails — only render if there are gallery images */}
-            {(hotel.images?.length ?? 0) > 0 && (
-              <div className="hidden md:grid grid-rows-2 gap-2 h-full">
-                {(hotel.images || []).slice(0, 2).map((img, i) => (
-                  <div key={i} className="overflow-hidden h-full">
-                    <img
-                      src={img.image_url}
-                      alt={img.alt_text || hotel.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <HotelGallery
+            heroImage={hotel.hero_image_url}
+            hotelName={hotel.name}
+            images={hotel.images || []}
+          />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main content */}
