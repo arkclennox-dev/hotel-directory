@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Pencil, Star, MapPin, Eye, EyeOff, Trash2 } from "lucide-react";
+import { Pencil, Star, MapPin, Eye, EyeOff, Trash2, Search } from "lucide-react";
 import DeleteHotelButton from "./DeleteButton";
 
 interface Hotel {
@@ -25,15 +25,28 @@ export default function HotelsTable({ hotels }: { hotels: Hotel[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [query, setQuery] = useState("");
 
-  const allChecked = hotels.length > 0 && selected.size === hotels.length;
-  const someChecked = selected.size > 0 && selected.size < hotels.length;
+  const filtered = query.trim()
+    ? hotels.filter((h) => {
+        const q = query.toLowerCase();
+        return (
+          h.name.toLowerCase().includes(q) ||
+          h.property_type?.toLowerCase().includes(q) ||
+          h.city?.name?.toLowerCase().includes(q) ||
+          h.slug.toLowerCase().includes(q)
+        );
+      })
+    : hotels;
+
+  const allChecked = filtered.length > 0 && filtered.every((h) => selected.has(h.id));
+  const someChecked = filtered.some((h) => selected.has(h.id)) && !allChecked;
 
   const toggleAll = () => {
     if (allChecked) {
-      setSelected(new Set());
+      setSelected((prev) => { const next = new Set(prev); filtered.forEach((h) => next.delete(h.id)); return next; });
     } else {
-      setSelected(new Set(hotels.map((h) => h.id)));
+      setSelected((prev) => new Set(Array.from(prev).concat(filtered.map((h) => h.id))));
     }
   };
 
@@ -68,6 +81,18 @@ export default function HotelsTable({ hotels }: { hotels: Hotel[] }) {
 
   return (
     <>
+      {/* Search */}
+      <div className="relative mb-3">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+        <input
+          type="text"
+          placeholder="Cari hotel, kota, tipe properti..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-9 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+        />
+      </div>
+
       {/* Bulk action toolbar */}
       {selected.size > 0 && (
         <div className="flex items-center justify-between px-5 py-3 bg-blue-600/10 border border-blue-500/30 rounded-xl mb-2">
@@ -95,6 +120,8 @@ export default function HotelsTable({ hotels }: { hotels: Hotel[] }) {
               Tambah Hotel Pertama
             </Link>
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-16 text-center text-gray-500 text-sm">Tidak ada hasil untuk "{query}"</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
@@ -117,7 +144,7 @@ export default function HotelsTable({ hotels }: { hotels: Hotel[] }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              {hotels.map((hotel) => (
+              {filtered.map((hotel) => (
                 <tr
                   key={hotel.id}
                   className={`bg-gray-900 hover:bg-gray-800/50 transition-colors ${selected.has(hotel.id) ? "bg-blue-900/10" : ""}`}
